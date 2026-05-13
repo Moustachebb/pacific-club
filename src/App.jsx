@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react'
 import fond from './assets/fond.jpg'
 import hero from './assets/hero.png'
-import event1 from './assets/event1.jpg'
-import EventModal from './components/EventModal'
-
 
 export default function App() {
-
-  const EVENT_WEBHOOK = 'https://discord.com/api/webhooks/1501915058815504485/7k7562xwZUBJNXAXlvKLD1iXlpNgyXiMXrvg5Z7K67MwfJoJ2e8D0hbScpW9eQBuZ-hS'
   // =========================
   // POSTS STOCKÉS EN LOCAL
   // =========================
@@ -36,7 +31,7 @@ export default function App() {
   const [reservationOpen, setReservationOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deletePostId, setDeletePostId] = useState('')
-  const [selectedMenuImage, setSelectedMenuImage] = useState(null)
+
   // =========================
   // ADD POST MODAL
   // =========================
@@ -50,6 +45,11 @@ export default function App() {
   const [adminAction, setAdminAction] = useState('')
   const [accessDenied, setAccessDenied] = useState(false)
 
+  // =========================
+  // MUSIC PLAYER
+  // =========================
+  const [muted, setMuted] = useState(false)
+
   const [newPost, setNewPost] = useState({
     title: '',
     description: '',
@@ -60,22 +60,11 @@ export default function App() {
   // =========================
   // FORMULAIRE RÉSERVATION
   // =========================
-  const [eventModalOpen, setEventModalOpen] = useState(false)
-
-  const [eventData, setEventData] = useState({
-    title: '',
-    date: '',
-    hour: '',
-    description: '',
-    image: '',
-  })
-
   const [reservationData, setReservationData] = useState({
     fullname: '',
     date: '',
     hour: '',
     people: '',
-    comment: '',
   })
 
   // =========================
@@ -88,21 +77,13 @@ export default function App() {
   // =========================
   // INTRO CINEMATIC
   // =========================
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setLoaded(true)
-  }, 1800)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoaded(true)
+    }, 1800)
 
-  return () => {
-    clearTimeout(timer)
-  }
-}, [])
-
-useEffect(() => {
-  loadMenu()
-  loadEvents()
-}, [])
-
+   return () => clearTimeout(timer)
+  }, [])
 
   // =========================
   // AJOUTER UN POST
@@ -155,88 +136,8 @@ useEffect(() => {
   // =========================
   // WEBHOOK DISCORD
   // =========================
-  const createEvent = async (e) => {
-    if (e) e.preventDefault()
-    console.log('CREATE EVENT OK')
-    const { title, date, hour, description, image } = eventData
-
-    if (!title || !date || !hour || !description) {
-      alert('Veuillez remplir les champs requis')
-      return
-    }
-
-    setPosts([
-      {
-        title,
-        description,
-        image,
-        category: 'EVENT',
-        video: '',
-      },
-      ...posts,
-    ])
-
-    try {
-      const response = await fetch(EVENT_WEBHOOK, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: 'Pacific Events',
-          embeds: [
-            {
-              title: `🎉 ${title}`,
-              description: description,
-              color: 15844367,
-              image: {
-                url: image,
-              },
-              fields: [
-                {
-                  name: '📅 Date',
-                  value: date,
-                  inline: true,
-                },
-                {
-                  name: '🕒 Heure',
-                  value: hour,
-                  inline: true,
-                },
-              ],
-              footer: {
-                text: 'Pacific Club • Los Santos',
-              },
-            },
-          ],
-        }),
-      })
-
-      console.log('Discord response', response.status)
-
-      if (response.ok) {
-        alert('Événement envoyé sur Discord ✅')
-      } else {
-        alert('Erreur Discord ❌')
-      }
-    } catch (error) {
-      console.error(error)
-      alert('Erreur connexion Discord ❌')
-    }
-
-    setEventData({
-      title: '',
-      date: '',
-      hour: '',
-      description: '',
-      image: '',
-    })
-
-    setEventModalOpen(false)
-  }
-
   const reserveClub = async () => {
-    const { fullname, date, hour, people, comment } = reservationData
+    const { fullname, date, hour, people } = reservationData
 
     if (!fullname || !date || !hour || !people) {
       alert('Veuillez remplir tous les champs')
@@ -244,7 +145,9 @@ useEffect(() => {
     }
 
     try {
-      await fetch(EVENT_WEBHOOK, {
+      await fetch(
+        'https://discord.com/api/webhooks/1501690357279358976/oH-jgdlHM_IQuO_JEzfFpqFMaotIj2f5wJrIVsYDTQFh1vgcdMiDjgJwfvQVIX21wHs2',
+        {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -275,11 +178,6 @@ useEffect(() => {
                     value: people,
                     inline: true,
                   },
-                  {
-                    name: 'Commentaire',
-                    value: comment || 'Aucun commentaire',
-                    inline: false,
-                  },
                 ],
               },
             ],
@@ -294,7 +192,6 @@ useEffect(() => {
         date: '',
         hour: '',
         people: '',
-        comment: '',
       })
 
       setReservationOpen(false)
@@ -326,161 +223,177 @@ useEffect(() => {
           </p>
         </div>
       </div>
-    )
-  }
+  )
+}
 
-  return (
-    <div className="bg-black text-white min-h-screen overflow-x-hidden font-serif">
-        
-      
+return (
+  <>
+      {/* BACKGROUND MUSIC */}
+      <audio
+        autoPlay
+        loop
+        muted={muted}
+        src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_946b7d2d1f.mp3?filename=luxury-lounge-124340.mp3"
+      />
+
+      {/* MUTE BUTTON */}
+      <button
+        onClick={() => setMuted(!muted)}
+        className="fixed top-6 right-6 z-[9999] bg-black/70 backdrop-blur-md border border-yellow-500/20 hover:border-yellow-400 text-yellow-400 px-5 py-4 rounded-2xl transition-all duration-300 shadow-[0_0_20px_rgba(255,215,0,0.08)]"
+      >
+        {muted ? '🔇' : '🔊'}
+      </button>
+
+      <div className="bg-black text-white min-h-screen overflow-x-hidden font-serif">
       {/* HERO */}
-      <section className="relative min-h-screen overflow-hidden bg-black">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
 
-        {/* BACKGROUND */}
-        <img
-          src={hero || fond}
-          className="absolute inset-0 w-full h-full object-cover opacity-25 scale-105"
-        />
+  {/* IMAGE FOND */}
+  <img
+    src={hero || fond}
+    className="absolute inset-0 w-full h-full object-cover opacity-50 scale-105"
+  />
 
-        <div className="absolute inset-0 bg-black/80"></div>
+  {/* OVERLAY */}
+  <div className="absolute inset-0 bg-black/60"></div>
 
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.10),transparent_40%)]"></div>
+  {/* GLOW */}
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.08),transparent_60%)]"></div>
 
-        {/* NAVBAR */}
-        <div className="relative z-20 max-w-7xl mx-auto px-10 pt-10 flex items-center justify-between">
+  {/* CONTENU */}
+  <div className="relative z-10 text-center px-6 max-w-5xl">
 
-          <h1
-            style={{ fontFamily: 'Cinzel, serif' }}
-            className="text-yellow-400 text-5xl tracking-[-4px]"
-          >
-            PC
-          </h1>
+    {/* BADGE */}
+    <div className="mb-10">
+      <span className="border border-yellow-500/40 text-yellow-400 px-7 py-3 rounded-full uppercase tracking-[7px] text-xs bg-black/30 backdrop-blur-md font-light">
+        Pacific Club
+      </span>
+    </div>
 
-          <div className="hidden md:flex items-center gap-10 uppercase tracking-[4px] text-sm text-white/80">
-            <a href="#" className="hover:text-yellow-400 transition-all">Accueil</a>
-            <a href="#" className="hover:text-yellow-400 transition-all">Club</a>
-            <a href="#" className="hover:text-yellow-400 transition-all">Hôtel</a>
-            <a href="#" className="hover:text-yellow-400 transition-all">Événements</a>
-            <button
-              onClick={() =>
-                document
-                  .getElementById('menu-section')
-                  ?.scrollIntoView({ behavior: 'smooth' })
-              }
-              className="hover:text-yellow-400 transition-all"
+    {/* TITRE */}
+    <h1 className="text-7xl md:text-[10rem] font-extralight tracking-[24px] uppercase text-white leading-none">
+      PACIFIC
+    </h1>
+
+    {/* SOUS TITRE */}
+    <h2 className="mt-10 text-yellow-400 uppercase tracking-[14px] text-lg md:text-2xl font-extralight">
+      Club • Hôtel • Nightlife
+    </h2>
+
+    {/* DESCRIPTION */}
+    <p className="max-w-3xl mx-auto mt-14 text-white/65 text-lg md:text-2xl leading-[2] font-extralight">
+      Le symbole du luxe nocturne à Los Santos.
+      Suites privées, événements exclusifs et expérience immersive haut de gamme.
+    </p>
+
+    {/* BOUTON */}
+    <div className="flex justify-center mt-20">
+      <button
+        onClick={() => setReservationOpen(true)}
+        className="bg-yellow-500/95 text-black px-10 py-5 rounded-2xl text-lg font-medium tracking-[2px] uppercase hover:scale-105 hover:bg-yellow-400 transition-all duration-300 shadow-[0_0_35px_rgba(255,215,0,0.35)]"
+      >
+        Réserver maintenant
+      </button>
+    </div>
+
+  </div>
+</section>
+
+      {/* STATS */}
+      <section className="py-10 border-t border-yellow-700/20 bg-black">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-6 px-6">
+          {[
+            ['25K+', 'Clients VIP'],
+            ['24/7', 'Nightclub'],
+            ['120+', 'Événements'],
+            ['5★', 'Expérience'],
+          ].map((item, index) => (
+            <div
+              key={index}
+              className="bg-zinc-950 border border-yellow-700/20 rounded-3xl p-8 text-center"
             >
-              MENU
-            </button>
-            <a href="#" className="hover:text-yellow-400 transition-all">Contact</a>
-          </div>
+              <h3 className="text-4xl text-yellow-400 font-black">
+                {item[0]}
+              </h3>
 
-          <button
-  onClick={() => setReservationOpen(true)}
-  className="border border-yellow-500/30 px-7 py-3 rounded-full text-yellow-300 tracking-[4px] uppercase text-sm bg-black/30 backdrop-blur-xl hover:bg-yellow-500/10 transition-all"
->
-  Réserver
-</button>
-
+              <p className="text-white/50 mt-3 tracking-[3px] uppercase text-sm">
+                {item[1]}
+              </p>
+            </div>
+          ))}
         </div>
-
-        {/* HERO CONTENT */}
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-32">
-
-          {/* BADGE */}
-          <div className="flex items-center gap-6">
-
-            <div className="w-24 h-px bg-yellow-500/40"></div>
-
-            <div className="border border-yellow-500/20 bg-black/40 backdrop-blur-xl text-yellow-300 px-10 py-4 rounded-full uppercase tracking-[8px] text-xs font-light">
-              Pacific Club
-            </div>
-
-            <div className="w-24 h-px bg-yellow-500/40"></div>
-
-          </div>
-
-          {/* TITLE */}
-          <h1
-            style={{ fontFamily: 'Cinzel, serif' }}
-            className="mt-10 text-[90px] md:text-[180px] tracking-[-10px] text-white leading-none font-light"
-          >
-         
-          </h1>
-
-          {/* SUBTITLE */}
-          <div className="mt-10 flex items-center gap-6">
-
-            <div className="w-40 h-px bg-yellow-500/30"></div>
-
-            <p className="text-white/90 tracking-[12px] uppercase text-2xl font-extralight">
-              Club • Hôtel • Nightlife
-            </p>
-
-            <div className="w-40 h-px bg-yellow-500/30"></div>
-
-          </div>
-
-          {/* DESCRIPTION */}
-          <p className="mt-16 max-w-5xl mx-auto text-white/55 text-2xl leading-[60px] font-light">
-          </p>
-
-          {/* BUTTON */}
-         <button
-  onClick={() =>
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: 'smooth',
-    })
-  }
-  className="mt-20 border border-yellow-500/30 px-14 py-6 rounded-full text-yellow-300 tracking-[5px] uppercase text-sm bg-black/40 backdrop-blur-xl hover:bg-yellow-500/10 transition-all duration-300 shadow-[0_0_30px_rgba(255,215,0,0.12)]"
->
-  Découvrir l’expérience
-</button>
-
-          {/* SCROLL */}
-          <div className="mt-24 flex flex-col items-center text-yellow-400/70">
-            <div className="w-px h-16 bg-yellow-500/40"></div>
-
-            <p className="mt-5 tracking-[6px] uppercase text-xs">
-              Scroll
-            </p>
-          </div>
-
-          {/* FEATURES */}
-          <div className="mt-24 w-full border-t border-yellow-500/10 grid grid-cols-1 md:grid-cols-4">
-
-            <div className="py-12 border-r border-yellow-500/10 text-center">
-              <h3 className="text-yellow-400 text-4xl">✦</h3>
-              <p className="mt-5 text-white tracking-[5px] uppercase">Luxe</p>
-              <p className="mt-3 text-white/50">Un service exceptionnel</p>
-            </div>
-
-            <div className="py-12 border-r border-yellow-500/10 text-center">
-              <h3 className="text-yellow-400 text-4xl">♛</h3>
-              <p className="mt-5 text-white tracking-[5px] uppercase">Exclusivité</p>
-              <p className="mt-3 text-white/50">Accès réservé</p>
-            </div>
-
-            <div className="py-12 border-r border-yellow-500/10 text-center">
-              <h3 className="text-yellow-400 text-4xl">✧</h3>
-              <p className="mt-5 text-white tracking-[5px] uppercase">Expérience</p>
-              <p className="mt-3 text-white/50">Des moments uniques</p>
-            </div>
-
-            <div className="py-12 text-center">
-              <h3 className="text-yellow-400 text-4xl">◈</h3>
-              <p className="mt-5 text-white tracking-[5px] uppercase">Élégance</p>
-              <p className="mt-3 text-white/50">Dans chaque détail</p>
-            </div>
-
-          </div>
-
-        </div>
-
       </section>
 
-{/* NEWS */}
-     <section className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
+      {/* MENU */}
+      <section className="py-28 px-6 bg-zinc-950 border-t border-yellow-700/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <p className="text-yellow-500 uppercase tracking-[5px]">
+              Signature Menu
+            </p>
+
+            <h2 className="text-5xl md:text-6xl text-white mt-4">
+              Cocktails & Champagne
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              [
+                'Black Gold',
+                '$18K',
+                'Cocktail signature premium',
+                'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=1974&auto=format&fit=crop',
+              ],
+              [
+                'Diamond VIP',
+                '$30K',
+                'Champagne et service privé',
+                'https://images.unsplash.com/photo-1563223771-375783ee91ad?q=80&w=1974&auto=format&fit=crop',
+              ],
+              [
+                'Pacific Royale',
+                '$50K',
+                'Expérience luxe complète',
+                'https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=1974&auto=format&fit=crop',
+              ],
+            ].map((drink, index) => (
+              <div
+                key={index}
+                className="group bg-black rounded-[35px] border border-yellow-700/20 overflow-hidden hover:border-yellow-500 hover:-translate-y-2 transition-all duration-300 shadow-2xl"
+              >
+                <div className="overflow-hidden">
+                  <img
+                    src={drink[3]}
+                    className="h-72 w-full object-cover group-hover:scale-110 transition-all duration-500"
+                  />
+                </div>
+
+                <div className="p-10 text-center flex flex-col h-[420px]">
+                  <h3 className="text-4xl text-yellow-400">
+                    {drink[0]}
+                  </h3>
+
+                  <p className="text-5xl mt-8 font-black text-white">
+                    {drink[1]}
+                  </p>
+
+                  <p className="text-white/50 mt-6 flex-1">
+                    {drink[2]}
+                  </p>
+
+                  <button className="mt-auto bg-yellow-500 text-black px-8 py-4 rounded-2xl font-bold hover:bg-yellow-400 hover:scale-105 transition-all shadow-[0_0_25px_rgba(255,215,0,0.4)]">
+                    Commander
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NEWS */}
+      <section className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
             <div>
@@ -613,10 +526,7 @@ useEffect(() => {
       </div>
     </div>
   </div>
-
-
-
-            </div>
+</div>
           </div>
           </div>
 
@@ -636,7 +546,7 @@ useEffect(() => {
                 ) : (
                   <img
                     src={post.image}
-                    className="w-full h-auto object-contain"
+                    className="w-full h-72 object-cover"
                   />
                 )}
 
@@ -729,18 +639,6 @@ useEffect(() => {
                 className="w-full bg-black border border-yellow-700/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-500"
               />
 
-              <textarea
-                placeholder="Commentaire / demande spéciale"
-                value={reservationData.comment}
-                onChange={(e) =>
-                  setReservationData({
-                    ...reservationData,
-                    comment: e.target.value,
-                  })
-                }
-                className="w-full bg-black border border-yellow-700/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-500 min-h-[120px] resize-none"
-              />
-
               <button
                 onClick={reserveClub}
                 className="w-full bg-yellow-500 text-black py-5 rounded-2xl text-lg font-bold hover:bg-yellow-400 hover:scale-[1.02] transition-all shadow-[0_0_25px_rgba(255,215,0,0.4)]"
@@ -789,16 +687,6 @@ useEffect(() => {
               <div className="flex gap-4 mt-8">
                 <button
                   onClick={() => {
-                        setAdminAction('event')
-                        setAdminLoginOpen(true)
-                      }}
-                  className="flex-1 bg-purple-500/90 text-white py-4 rounded-2xl hover:bg-purple-400 transition-all"
-                >
-                  Event
-                </button>
-
-                <button
-                  onClick={() => {
                     setAdminLoginOpen(false)
                     setAdminPassword('')
                     setAccessDenied(false)
@@ -823,11 +711,7 @@ useEffect(() => {
                       setAddModalOpen(true)
                     }
 
-                    if (adminAction === 'event') {
-      setEventModalOpen(true)
-    }
-
-    if (adminAction === 'delete') {
+                    if (adminAction === 'delete') {
                       setDeleteModalOpen(true)
                     }
                   }}
@@ -967,99 +851,13 @@ useEffect(() => {
                 >
                   Supprimer
                 </button>
-                <button
-                  onClick={() => {
-                        setAdminAction('event')
-                        setAdminLoginOpen(true)
-                      }}
-                  className="flex-1 bg-purple-500/90 text-white py-4 rounded-2xl hover:bg-purple-400 transition-all shadow-[0_0_25px_rgba(168,85,247,0.2)]"
-                >
-                  Créer un événement
-                </button>
-
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {eventModalOpen && <EventModal />}
-
-     {/* MENU SECTION */}
-<section
-  id="menu-section"
-  className="py-32 px-6 bg-black border-t border-yellow-500/10"
->
-
-  <div className="max-w-7xl mx-auto">
-
-    <div className="text-center mb-20">
-
-      <p className="text-yellow-400 uppercase tracking-[6px] text-sm">
-        Pacific Club
-      </p>
-
-      <h2
-        style={{ fontFamily: 'Cinzel, serif' }}
-        className="mt-6 text-6xl text-white font-light"
-      >
-        MENU
-      </h2>
-
-      <div className="w-32 h-px bg-yellow-500/30 mx-auto mt-8"></div>
-
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"       MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"                
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
-
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"               MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"              
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
-
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"                MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"                  
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
-
-    </div>
-
-  </div>
-
-</section>
-  {selectedMenuImage && (
-  <div
-    onClick={() => setSelectedMenuImage(null)}
-    className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-10"
-  >
-    <img
-      src={selectedMenuImage}
-      className="max-w-full max-h-full rounded-[30px]"
-    />
-  </div>
-)}    
-       {/* FOOTER */}
-
+      {/* FOOTER */}
       <footer className="py-16 text-center bg-black border-t border-yellow-700/20">
         <h2 className="text-5xl text-yellow-400 tracking-[10px]">
           PACIFIC
@@ -1068,10 +866,11 @@ useEffect(() => {
         <p className="mt-5 text-white/50">
           Los Santos • Luxury • Nightlife
         </p>
-      
-      
-
       </footer>
-    </div>
-  )
+ </div>
+</>
+)
 }
+
+
+
