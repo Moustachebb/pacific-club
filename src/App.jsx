@@ -3,14 +3,7 @@ import fond from './assets/fond.jpg'
 import hero from './assets/hero.png'
 import event1 from './assets/event1.jpg'
 import EventModal from './components/EventModal'
-import { db } from './lib/firebase'
-import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-} from 'firebase/firestore'
+
 
 export default function App() {
 
@@ -18,11 +11,24 @@ export default function App() {
   // =========================
   // POSTS STOCKÉS EN LOCAL
   // =========================
-const [posts, setPosts] = useState([])
-const [menuImages, setMenuImages] = useState([])
-const [eventsImages, setEventsImages] = useState([])
-const [newMenuImage, setNewMenuImage] = useState('')
-const [newEventImage, setNewEventImage] = useState('')
+  const [posts, setPosts] = useState(() => {
+    const savedPosts = localStorage.getItem('pacific-posts')
+
+    return savedPosts
+      ? JSON.parse(savedPosts)
+      : [
+          {
+            title: 'Black Diamond Night',
+            description:
+              'DJ internationaux, ambiance premium et accès VIP.',
+            image:
+              'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop',
+            category: 'EVENT',
+            video: '',
+          },
+        ]
+  })
+
   // =========================
   // STATES
   // =========================
@@ -31,49 +37,6 @@ const [newEventImage, setNewEventImage] = useState('')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deletePostId, setDeletePostId] = useState('')
   const [selectedMenuImage, setSelectedMenuImage] = useState(null)
-  useEffect(() => {
-  loadNews()
-  loadMenu()
-  loadEvents()
-  }, [])
-
-const loadMenu = async () => {
-  const querySnapshot = await getDocs(
-    collection(db, 'pacific_menu')
-  )
-
-  const data = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }))
-
-  setMenuImages(data)
-}
-const loadEvents = async () => {
-  const querySnapshot = await getDocs(
-    collection(db, 'pacific_events')
-  )
-
-  const data = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }))
-
-  setEventsImages(data)
-}
-
-const loadNews = async () => {
-  const querySnapshot = await getDocs(
-    collection(db, 'pacific_news')
-  )
-
-  const newsData = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }))
-
-  setPosts(newsData)
-}
   // =========================
   // ADD POST MODAL
   // =========================
@@ -134,86 +97,60 @@ useEffect(() => {
     clearTimeout(timer)
   }
 }, [])
+
+useEffect(() => {
+  loadMenu()
+  loadEvents()
+}, [])
+
+
   // =========================
   // AJOUTER UN POST
   // =========================
-const addPost = async () => {
+  const addPost = () => {
+    if (posts.length >= 6) {
+      alert('Maximum 6 posts')
+      return
+    }
 
-  const { title, description, image, video } = newPost
+    const { title, description, image, video } = newPost
 
-  if (!title || !description) {
-    alert('Veuillez remplir les champs requis')
-    return
+    if (!title || !description) {
+      alert('Veuillez remplir les champs requis')
+      return
+    }
+
+    setPosts([
+      {
+        title,
+        description,
+        image,
+        video,
+        category: 'NEWS',
+      },
+      ...posts,
+    ])
+
+    setNewPost({
+      title: '',
+      description: '',
+      image: '',
+      video: '',
+    })
+
+    setAddModalOpen(false)
   }
-
-  await addDoc(collection(db, 'pacific_news'), {
-    title,
-    description,
-    image,
-    video,
-    category: 'NEWS',
-    createdAt: Date.now(),
-  })
-
-  await loadNews()
-
-  setNewPost({
-    title: '',
-    description: '',
-    image: '',
-    video: '',
-  })
-
-  setAddModalOpen(false)
-}
-
-const addEventImage = async () => {
-
-  if (!newEventImage) return
-
-  await addDoc(collection(db, 'pacific_events'), {
-    image: newEventImage,
-  })
-
-  setNewEventImage('')
-
-  loadEvents()
-}
-
-const deleteMenuImage = async (id) => {
-
-  await deleteDoc(doc(db, 'pacific_menu', id))
-
-  loadMenu()
-}
-const addMenuImage = async () => {
-
-  if (!newMenuImage) return
-
-  await addDoc(collection(db, 'pacific_menu'), {
-    image: newMenuImage,
-  })
-
-  setNewMenuImage('')
-
-  loadMenu()
-}
-const deleteEventImage = async (id) => {
-
-  await deleteDoc(doc(db, 'pacific_events', id))
-
-  loadEvents()
-}
-
 
   // =========================
   // SUPPRIMER UN POST
   // =========================
-const deletePost = async (id) => {
-  await deleteDoc(doc(db, 'pacific_news', id))
+  const deletePost = (indexToDelete) => {
+    const updatedPosts = posts.filter(
+      (_, index) => index !== indexToDelete
+    )
 
-  await loadNews()
-}
+    setPosts(updatedPosts)
+  }
 
   // =========================
   // WEBHOOK DISCORD
@@ -240,7 +177,7 @@ const deletePost = async (id) => {
     ])
 
     try {
-      const response = await fetch('http://localhost:3001/event', {
+      const response = await fetch(EVENT_WEBHOOK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -307,7 +244,7 @@ const deletePost = async (id) => {
     }
 
     try {
-      await fetch('http://localhost:3001/event', {
+      await fetch(EVENT_WEBHOOK, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -410,33 +347,20 @@ const deletePost = async (id) => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.10),transparent_40%)]"></div>
 
         {/* NAVBAR */}
-        <div className="relative z-20 max-w-7xl mx-auto px-10 pt-10 flex items-center justify-center">
+        <div className="relative z-20 max-w-7xl mx-auto px-10 pt-10 flex items-center justify-between">
 
-         
+          <h1
+            style={{ fontFamily: 'Cinzel, serif' }}
+            className="text-yellow-400 text-5xl tracking-[-4px]"
+          >
+            PC
+          </h1>
 
           <div className="hidden md:flex items-center gap-10 uppercase tracking-[4px] text-sm text-white/80">
             <a href="#" className="hover:text-yellow-400 transition-all">Accueil</a>
-            <button
-  onClick={() =>
-    document
-      .getElementById('news-section')
-      ?.scrollIntoView({ behavior: 'smooth' })
-  }
-  className="hover:text-yellow-400 transition-all"
->
-  NEWS
-</button>
+            <a href="#" className="hover:text-yellow-400 transition-all">Club</a>
             <a href="#" className="hover:text-yellow-400 transition-all">Hôtel</a>
-            <button
-  onClick={() =>
-    document
-      .getElementById('events-section')
-      ?.scrollIntoView({ behavior: 'smooth' })
-  }
-  className="hover:text-yellow-400 transition-all"
->
-  EVENEMENTS
-</button>
+            <a href="#" className="hover:text-yellow-400 transition-all">Événements</a>
             <button
               onClick={() =>
                 document
@@ -450,7 +374,12 @@ const deletePost = async (id) => {
             <a href="#" className="hover:text-yellow-400 transition-all">Contact</a>
           </div>
 
-   
+          <button
+  onClick={() => setReservationOpen(true)}
+  className="border border-yellow-500/30 px-7 py-3 rounded-full text-yellow-300 tracking-[4px] uppercase text-sm bg-black/30 backdrop-blur-xl hover:bg-yellow-500/10 transition-all"
+>
+  Réserver
+</button>
 
         </div>
 
@@ -458,7 +387,17 @@ const deletePost = async (id) => {
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-32">
 
           {/* BADGE */}
-        
+          <div className="flex items-center gap-6">
+
+            <div className="w-24 h-px bg-yellow-500/40"></div>
+
+            <div className="border border-yellow-500/20 bg-black/40 backdrop-blur-xl text-yellow-300 px-10 py-4 rounded-full uppercase tracking-[8px] text-xs font-light">
+              Pacific Club
+            </div>
+
+            <div className="w-24 h-px bg-yellow-500/40"></div>
+
+          </div>
 
           {/* TITLE */}
           <h1
@@ -473,11 +412,9 @@ const deletePost = async (id) => {
 
             <div className="w-40 h-px bg-yellow-500/30"></div>
 
-       <img
-  src="/logo.png"
-  alt="Pacific Club"
-  className="h-100 w-auto object-contain -mt-30"
-/>
+            <p className="text-white/90 tracking-[12px] uppercase text-2xl font-extralight">
+              Club • Hôtel • Nightlife
+            </p>
 
             <div className="w-40 h-px bg-yellow-500/30"></div>
 
@@ -488,11 +425,16 @@ const deletePost = async (id) => {
           </p>
 
           {/* BUTTON */}
-<button
-  onClick={() => setReservationOpen(true)}
+         <button
+  onClick={() =>
+    window.scrollTo({
+      top: window.innerHeight,
+      behavior: 'smooth',
+    })
+  }
   className="mt-20 border border-yellow-500/30 px-14 py-6 rounded-full text-yellow-300 tracking-[5px] uppercase text-sm bg-black/40 backdrop-blur-xl hover:bg-yellow-500/10 transition-all duration-300 shadow-[0_0_30px_rgba(255,215,0,0.12)]"
 >
-  Réserver
+  Découvrir l’expérience
 </button>
 
           {/* SCROLL */}
@@ -538,7 +480,7 @@ const deletePost = async (id) => {
       </section>
 
 {/* NEWS */}
-     <section id="news-section" className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
+     <section className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
             <div>
@@ -708,14 +650,8 @@ const deletePost = async (id) => {
                   </h3>
 
                   <p className="text-white/60 mt-5 leading-relaxed">
-                    {post.content}
+                    {post.description}
                   </p>
-<button
-  onClick={() => deletePost(post.id)}
-  className="mt-6 border border-red-500/30 px-5 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-all"
->
-  Supprimer
-</button>
                 </div>
               </div>
             ))}
@@ -874,7 +810,7 @@ const deletePost = async (id) => {
 
                 <button
                   onClick={() => {
-                    if (adminPassword !== 'Silence') {
+                    if (adminPassword !== 'pacificvip') {
                       setAccessDenied(true)
                       return
                     }
@@ -906,130 +842,82 @@ const deletePost = async (id) => {
       )}
 
       {/* ADD POST MODAL */}
-{addModalOpen && (
-  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-6">
-    <div className="bg-zinc-950 border border-yellow-500/20 rounded-[35px] w-full max-w-2xl overflow-hidden shadow-[0_0_40px_rgba(255,215,0,0.08)]">
+      {addModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-6">
+          <div className="bg-zinc-950 border border-yellow-500/20 rounded-[35px] w-full max-w-2xl overflow-hidden shadow-[0_0_40px_rgba(255,215,0,0.08)]">
 
-      <div className="p-8 border-b border-yellow-500/10 bg-gradient-to-r from-yellow-500/5 to-transparent">
-        <p className="text-yellow-400 uppercase tracking-[5px] text-xs">
-          Publication
-        </p>
+            <div className="p-8 border-b border-yellow-500/10 bg-gradient-to-r from-yellow-500/5 to-transparent">
+              <p className="text-yellow-400 uppercase tracking-[5px] text-xs">
+                Publication
+              </p>
 
-        <h3 className="text-white text-4xl mt-4 font-extralight">
-          Ajouter un post
-        </h3>
-      </div>
+              <h3 className="text-white text-4xl mt-4 font-extralight">
+                Ajouter un post
+              </h3>
+            </div>
 
-      <div className="p-8 space-y-6">
+            <div className="p-8 space-y-6">
+              <input
+                type="text"
+                placeholder="Titre du post"
+                value={newPost.title}
+                onChange={(e) =>
+                  setNewPost({ ...newPost, title: e.target.value })
+                }
+                className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
+              />
 
-        <input
-          type="text"
-          placeholder="Titre du post"
-          value={newPost.title}
-          onChange={(e) =>
-            setNewPost({ ...newPost, title: e.target.value })
-          }
-          className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
-        />
+              <textarea
+                placeholder="Description du post"
+                value={newPost.description}
+                onChange={(e) =>
+                  setNewPost({
+                    ...newPost,
+                    description: e.target.value,
+                  })
+                }
+                className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400 min-h-[140px] resize-none"
+              />
 
-        <textarea
-          placeholder="Description du post"
-          value={newPost.description}
-          onChange={(e) =>
-            setNewPost({
-              ...newPost,
-              description: e.target.value,
-            })
-          }
-          className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400 min-h-[140px] resize-none"
-        />
+              <input
+                type="text"
+                placeholder="Lien image"
+                value={newPost.image}
+                onChange={(e) =>
+                  setNewPost({ ...newPost, image: e.target.value })
+                }
+                className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
+              />
 
-        <input
-          type="text"
-          placeholder="Lien image"
-          value={newPost.image}
-          onChange={(e) =>
-            setNewPost({ ...newPost, image: e.target.value })
-          }
-          className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
-        />
+              <input
+                type="text"
+                placeholder="Lien vidéo YouTube (optionnel)"
+                value={newPost.video}
+                onChange={(e) =>
+                  setNewPost({ ...newPost, video: e.target.value })
+                }
+                className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
+              />
 
-        <input
-          type="text"
-          placeholder="Lien vidéo YouTube (optionnel)"
-          value={newPost.video}
-          onChange={(e) =>
-            setNewPost({ ...newPost, video: e.target.value })
-          }
-          className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
-        />
+              <div className="flex gap-4 pt-4">
+                <button
+                  onClick={() => setAddModalOpen(false)}
+                  className="flex-1 bg-zinc-900 border border-white/10 text-white py-4 rounded-2xl hover:bg-zinc-800 transition-all"
+                >
+                  Annuler
+                </button>
 
-        <div className="flex gap-4 pt-4">
-          <button
-            onClick={() => setAddModalOpen(false)}
-            className="flex-1 bg-zinc-900 border border-white/10 text-white py-4 rounded-2xl hover:bg-zinc-800 transition-all"
-          >
-            Annuler
-          </button>
-
-          <button
-            onClick={addPost}
-            className="flex-1 bg-yellow-500 text-black py-4 rounded-2xl hover:bg-yellow-400 transition-all shadow-[0_0_25px_rgba(255,215,0,0.25)] font-medium"
-          >
-            Publier le post
-          </button>
+                <button
+                  onClick={addPost}
+                  className="flex-1 bg-yellow-500 text-black py-4 rounded-2xl hover:bg-yellow-400 transition-all shadow-[0_0_25px_rgba(255,215,0,0.25)] font-medium"
+                >
+                  Publier le post
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div className="mt-10 border-t border-yellow-500/10 pt-10">
-
-          <h3 className="text-yellow-400 text-2xl mb-6">
-            Ajouter image MENU
-          </h3>
-
-          <input
-            type="text"
-            placeholder="URL image menu"
-            value={newMenuImage}
-            onChange={(e) => setNewMenuImage(e.target.value)}
-            className="w-full bg-black border border-yellow-500/20 rounded-2xl px-5 py-4 text-white"
-          />
-
-          <button
-            onClick={addMenuImage}
-            className="mt-5 border border-yellow-500/30 px-6 py-3 rounded-2xl text-yellow-400 hover:bg-yellow-500/10 transition-all"
-          >
-            Ajouter MENU
-          </button>
-
-        </div>
-
-        <div className="mt-10 border-t border-yellow-500/10 pt-10">
-
-          <h3 className="text-yellow-400 text-2xl mb-6">
-            Ajouter image EVENEMENT
-          </h3>
-
-          <input
-            type="text"
-            placeholder="URL image événement"
-            value={newEventImage}
-            onChange={(e) => setNewEventImage(e.target.value)}
-            className="w-full bg-black border border-yellow-500/20 rounded-2xl px-5 py-4 text-white"
-          />
-
-          <button
-            onClick={addEventImage}
-            className="mt-5 border border-yellow-500/30 px-6 py-3 rounded-2xl text-yellow-400 hover:bg-yellow-500/10 transition-all"
-          >
-            Ajouter EVENEMENT
-          </button>
-
-        </div>
-
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       {/* DELETE MODAL */}
       {deleteModalOpen && (
@@ -1097,24 +985,12 @@ const deletePost = async (id) => {
 
       {eventModalOpen && <EventModal />}
 
-{/* MENU SECTION */}
-  {selectedMenuImage && (
-  <div
-    onClick={() => setSelectedMenuImage(null)}
-    className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-10"
-  >
-    <img
-      src={selectedMenuImage}
-      className="max-w-full max-h-full rounded-[30px]"
-    />
-  </div>
-)}    
-       
-{/* EVENTS SECTION */}
+     {/* MENU SECTION */}
 <section
-  id="events-section"
-  className="py-32 px-6 bg-zinc-950 border-t border-yellow-500/10"
+  id="menu-section"
+  className="py-32 px-6 bg-black border-t border-yellow-500/10"
 >
+
   <div className="max-w-7xl mx-auto">
 
     <div className="text-center mb-20">
@@ -1127,54 +1003,75 @@ const deletePost = async (id) => {
         style={{ fontFamily: 'Cinzel, serif' }}
         className="mt-6 text-6xl text-white font-light"
       >
-        ÉVÉNEMENTS
+        MENU
       </h2>
 
       <div className="w-32 h-px bg-yellow-500/30 mx-auto mt-8"></div>
 
     </div>
 
-    <div className="flex justify-center gap-10 flex-wrap">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
 
-      {eventsImages.map((item) => (
-        <div key={item.id} className="relative">
+<img
+  src="https://i.imgur.com/Bvzxhhi.png"       MENU A REMPLACER
+  onClick={() =>
+    setSelectedMenuImage(
+      "https://i.imgur.com/Bvzxhhi.png"                
+    )
+  }
+  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+/>
 
-          <img
-            src={item.image}
-            onClick={() =>
-              setSelectedMenuImage(item.image)
-            }
-            className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-          />
+<img
+  src="https://i.imgur.com/Bvzxhhi.png"               MENU A REMPLACER
+  onClick={() =>
+    setSelectedMenuImage(
+      "https://i.imgur.com/Bvzxhhi.png"              
+    )
+  }
+  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+/>
 
-          <button
-            onClick={() => deleteEventImage(item.id)}
-            className="absolute top-4 right-4 bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-xl"
-          >
-            X
-          </button>
-
-        </div>
-      ))}
+<img
+  src="https://i.imgur.com/Bvzxhhi.png"                MENU A REMPLACER
+  onClick={() =>
+    setSelectedMenuImage(
+      "https://i.imgur.com/Bvzxhhi.png"                  
+    )
+  }
+  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+/>
 
     </div>
 
   </div>
+
 </section>
+  {selectedMenuImage && (
+  <div
+    onClick={() => setSelectedMenuImage(null)}
+    className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-10"
+  >
+    <img
+      src={selectedMenuImage}
+      className="max-w-full max-h-full rounded-[30px]"
+    />
+  </div>
+)}    
+       {/* FOOTER */}
 
+      <footer className="py-16 text-center bg-black border-t border-yellow-700/20">
+        <h2 className="text-5xl text-yellow-400 tracking-[10px]">
+          PACIFIC
+        </h2>
 
-{/* FOOTER */}
+        <p className="mt-5 text-white/50">
+          Los Santos • Luxury • Nightlife
+        </p>
+      
+      
 
-    <footer className="py-16 flex justify-center bg-black border-t border-yellow-700/20">
-
-  <img
-    src="/logo.png"
-    alt="Pacific Club"
-    className="h-48 w-auto object-contain opacity-90"
-  />
-
-</footer>
-
-</div>
-)
+      </footer>
+    </div>
+  )
 }
