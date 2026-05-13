@@ -348,10 +348,10 @@ if (!loaded) {
 }
 
 return (
-    <div className="bg-black text-white min-h-screen overflow-x-hidden font-serif">
+    <div className="bg-black text-white min-h-w-screen overflow-x-hidden font-serif">
         
       
-      <section className="relative min-h-screen overflow-hidden bg-black flex items-center justify-center">
+      <section className="relative min-h-w-screenoverflow-hidden bg-black flex items-center justify-center">
 
   {/* BACKGROUND */}
   <img
@@ -394,7 +394,7 @@ return (
 {/* NEWS */}
 
      <section className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
-        <div className="max-w-7xl mx-auto"></div>
+        <div className="w-full"></div>
           <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
             <div>
               <p className="text-yellow-500 uppercase tracking-[5px]">
@@ -957,7 +957,7 @@ return (
   className="py-32 px-6 bg-black border-t border-yellow-500/10"
 >
 
-  <div className="max-w-7xl mx-auto">
+  <div className="w-full">
 
     <div className="text-center mb-20">
 
