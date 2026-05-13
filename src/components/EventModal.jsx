@@ -17,45 +17,46 @@ export default function EventModal() {
       return
     }
 
-    try {
-  const response = await fetch('https://pacificclub.onrender.com/event', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username: 'Pacific Events',
-      embeds: [
-        {
-          title: 'EVENT • ' + title,
-          description,
-          color: 15844367,
-          image: {
-            url: image,
+   try {
+  const response = await fetch(
+    'https://discord.com/api/webhooks/1501915058815504485/7k7562xwZUBJNXAXlvKLD1iXlpNgyXiMXrvg5Z7K67MwfJoJ2e8D0hbScpW9eQBuZ-hS',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: 'Pacific Events',
+        embeds: [
+          {
+            title: '🎉 ' + title,
+            description,
+            color: 15844367,
+            image: {
+              url: image,
+            },
+            fields: [
+              {
+                name: '📅 Date',
+                value: date,
+                inline: true,
+              },
+              {
+                name: '🕒 Heure',
+                value: hour,
+                inline: true,
+              },
+            ],
           },
-          fields: [
-            {
-              name: 'Date',
-              value: date,
-              inline: true,
-            },
-            {
-              name: 'Heure',
-              value: hour,
-              inline: true,
-            },
-          ],
-        },
-      ],
-    }),
-  })
+        ],
+      }),
+    }
+  )
 
-  console.log(response)
+  console.log(response.status)
 
   if (response.ok) {
     alert('Événement envoyé sur Discord')
-  } else {
-    alert('Erreur serveur')
   }
 
 } catch (error) {

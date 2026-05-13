@@ -348,10 +348,10 @@ if (!loaded) {
 }
 
 return (
-    <div className="bg-black text-white min-h-w-screen overflow-x-hidden font-serif">
+    <div className="bg-black text-white min-h-screen w-screen overflow-x-hidden font-serif">
         
       
-      <section className="relative min-h-w-screenoverflow-hidden bg-black flex items-center justify-center">
+      <section className="relative min-h-screen w-screen overflow-hidden bg-black flex items-center justify-center">
 
   {/* BACKGROUND */}
   <img
@@ -394,7 +394,7 @@ return (
 {/* NEWS */}
 
      <section className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
-        <div className="w-full"></div>
+        <div className="w-full px-8"></div>
           <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
             <div>
               <p className="text-yellow-500 uppercase tracking-[5px]">
@@ -972,7 +972,7 @@ return (
         MENU
       </h2>
 
-      <div className="w-32 h-px bg-yellow-500/30 mx-auto mt-8"></div>
+      <div className="w-32 h-px bg-yellow-500/30  mt-8"></div>
 
     </div>
 
@@ -1002,7 +1002,7 @@ return (
   <img
     src="/logo.png"
     alt="Pacific Club"
-    className="w-[220px] mx-auto object-contain opacity-90"
+    className="w-[220px]  object-contain opacity-90"
   />
 
 </footer>
