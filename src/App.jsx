@@ -348,10 +348,10 @@ if (!loaded) {
 }
 
 return (
-    <div className="bg-black text-white min-h-screen w-full overflow-x-hidden font-serif">
+    <div className="bg-black text-white min-h-screen w-screen overflow-x-hidden font-serif">
         
       
-      <section className="relative w-full min-h-screen overflow-hidden bg-black flex items-center justify-center">
+      <section className="relative w-screen min-h-screen overflow-hidden bg-black flex items-center justify-center">
 
   {/* BACKGROUND */}
   <img
