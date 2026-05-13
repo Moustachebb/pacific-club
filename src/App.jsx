@@ -348,10 +348,10 @@ if (!loaded) {
 }
 
 return (
-    <div className="bg-black text-white min-h-screen w-screen overflow-x-hidden font-serif">
+    <div className="bg-black text-white min-h-screen w-full overflow-x-hidden font-serif">
         
       
-      <section className="relative min-h-screen w-screen overflow-hidden bg-black flex items-center justify-center">
+      <section className="relative w-full min-h-screen overflow-hidden bg-black flex items-center justify-center">
 
   {/* BACKGROUND */}
   <img
@@ -363,7 +363,7 @@ return (
   <div className="absolute inset-0 bg-black/70"></div>
 
   {/* MENU TOP */}
-  <div className="absolute top-10 left-1/2 -translate-x-1/2 flex gap-12 uppercase tracking-[6px] text-sm text-white z-50">
+  <div className="absolute top-10 left-0 w-full flex justify-center gap-16 uppercase tracking-[6px] text-sm text-white z-50 px-10">
     <a href="#">Accueil</a>
     <a href="#">Club</a>
     <a href="#">Hotel</a>
@@ -379,7 +379,7 @@ return (
     <img
       src="/logo.png"
       alt="Pacific Club"
-      className="w-[520px] max-w-[90%] object-contain drop-shadow-[0_0_35px_rgba(255,215,0,0.45)]"
+      className="w-[850px] max-w-[95%] object-contain drop-shadow-[0_0_35px_rgba(255,215,0,0.45)]"
     />
 
     <button
@@ -393,8 +393,8 @@ return (
 </section>
 {/* NEWS */}
 
-     <section className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
-        <div className="w-full px-8"></div>
+     <section className="w-full py-28 px-12 border-t border-yellow-700/20 bg-zinc-950">
+        <div className="w-full max-w-none px-0"></div>
           <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
             <div>
               <p className="text-yellow-500 uppercase tracking-[5px]">
@@ -952,9 +952,8 @@ return (
 
      {/* MENU SECTION */}
 <section
-
   id="menu-section"
-  className="py-32 px-6 bg-black border-t border-yellow-500/10"
+  className="w-full py-32 px-12 bg-black border-t border-yellow-500/10"
 >
 
   <div className="w-full">
@@ -976,7 +975,7 @@ return (
 
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-10 w-full">
 
 {menuImages.map((image, index) => (
   <div key={index} className="relative group">
@@ -1002,7 +1001,7 @@ return (
   <img
     src="/logo.png"
     alt="Pacific Club"
-    className="w-[220px]  object-contain opacity-90"
+    className="w-[340px] mx-auto object-contain opacity-90"
   />
 
 </footer>
