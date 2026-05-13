@@ -19,7 +19,10 @@ export default function App() {
   // POSTS STOCKÉS EN LOCAL
   // =========================
 const [posts, setPosts] = useState([])
-
+const [menuImages, setMenuImages] = useState([])
+const [eventsImages, setEventsImages] = useState([])
+const [newMenuImage, setNewMenuImage] = useState('')
+const [newEventImage, setNewEventImage] = useState('')
   // =========================
   // STATES
   // =========================
@@ -30,7 +33,34 @@ const [posts, setPosts] = useState([])
   const [selectedMenuImage, setSelectedMenuImage] = useState(null)
   useEffect(() => {
   loadNews()
-}, [])
+  loadMenu()
+  loadEvents()
+  }, [])
+
+const loadMenu = async () => {
+  const querySnapshot = await getDocs(
+    collection(db, 'pacific_menu')
+  )
+
+  const data = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
+
+  setMenuImages(data)
+}
+const loadEvents = async () => {
+  const querySnapshot = await getDocs(
+    collection(db, 'pacific_events')
+  )
+
+  const data = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
+
+  setEventsImages(data)
+}
 
 const loadNews = async () => {
   const querySnapshot = await getDocs(
@@ -107,7 +137,8 @@ useEffect(() => {
   // =========================
   // AJOUTER UN POST
   // =========================
- const addPost = async () => {
+const addPost = async () => {
+
   const { title, description, image, video } = newPost
 
   if (!title || !description) {
@@ -135,6 +166,45 @@ useEffect(() => {
 
   setAddModalOpen(false)
 }
+
+const addEventImage = async () => {
+
+  if (!newEventImage) return
+
+  await addDoc(collection(db, 'pacific_events'), {
+    image: newEventImage,
+  })
+
+  setNewEventImage('')
+
+  loadEvents()
+}
+
+const deleteMenuImage = async (id) => {
+
+  await deleteDoc(doc(db, 'pacific_menu', id))
+
+  loadMenu()
+}
+const addMenuImage = async () => {
+
+  if (!newMenuImage) return
+
+  await addDoc(collection(db, 'pacific_menu'), {
+    image: newMenuImage,
+  })
+
+  setNewMenuImage('')
+
+  loadMenu()
+}
+const deleteEventImage = async (id) => {
+
+  await deleteDoc(doc(db, 'pacific_events', id))
+
+  loadEvents()
+}
+
 
   // =========================
   // SUPPRIMER UN POST
@@ -638,8 +708,14 @@ const deletePost = async (id) => {
                   </h3>
 
                   <p className="text-white/60 mt-5 leading-relaxed">
-                    post.content
+                    {post.content}
                   </p>
+<button
+  onClick={() => deletePost(post.id)}
+  className="mt-6 border border-red-500/30 px-5 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-all"
+>
+  Supprimer
+</button>
                 </div>
               </div>
             ))}
@@ -830,82 +906,130 @@ const deletePost = async (id) => {
       )}
 
       {/* ADD POST MODAL */}
-      {addModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-6">
-          <div className="bg-zinc-950 border border-yellow-500/20 rounded-[35px] w-full max-w-2xl overflow-hidden shadow-[0_0_40px_rgba(255,215,0,0.08)]">
+{addModalOpen && (
+  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-6">
+    <div className="bg-zinc-950 border border-yellow-500/20 rounded-[35px] w-full max-w-2xl overflow-hidden shadow-[0_0_40px_rgba(255,215,0,0.08)]">
 
-            <div className="p-8 border-b border-yellow-500/10 bg-gradient-to-r from-yellow-500/5 to-transparent">
-              <p className="text-yellow-400 uppercase tracking-[5px] text-xs">
-                Publication
-              </p>
+      <div className="p-8 border-b border-yellow-500/10 bg-gradient-to-r from-yellow-500/5 to-transparent">
+        <p className="text-yellow-400 uppercase tracking-[5px] text-xs">
+          Publication
+        </p>
 
-              <h3 className="text-white text-4xl mt-4 font-extralight">
-                Ajouter un post
-              </h3>
-            </div>
+        <h3 className="text-white text-4xl mt-4 font-extralight">
+          Ajouter un post
+        </h3>
+      </div>
 
-            <div className="p-8 space-y-6">
-              <input
-                type="text"
-                placeholder="Titre du post"
-                value={newPost.title}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, title: e.target.value })
-                }
-                className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
-              />
+      <div className="p-8 space-y-6">
 
-              <textarea
-                placeholder="Description du post"
-                value={newPost.description}
-                onChange={(e) =>
-                  setNewPost({
-                    ...newPost,
-                    description: e.target.value,
-                  })
-                }
-                className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400 min-h-[140px] resize-none"
-              />
+        <input
+          type="text"
+          placeholder="Titre du post"
+          value={newPost.title}
+          onChange={(e) =>
+            setNewPost({ ...newPost, title: e.target.value })
+          }
+          className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
+        />
 
-              <input
-                type="text"
-                placeholder="Lien image"
-                value={newPost.image}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, image: e.target.value })
-                }
-                className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
-              />
+        <textarea
+          placeholder="Description du post"
+          value={newPost.description}
+          onChange={(e) =>
+            setNewPost({
+              ...newPost,
+              description: e.target.value,
+            })
+          }
+          className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400 min-h-[140px] resize-none"
+        />
 
-              <input
-                type="text"
-                placeholder="Lien vidéo YouTube (optionnel)"
-                value={newPost.video}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, video: e.target.value })
-                }
-                className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
-              />
+        <input
+          type="text"
+          placeholder="Lien image"
+          value={newPost.image}
+          onChange={(e) =>
+            setNewPost({ ...newPost, image: e.target.value })
+          }
+          className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
+        />
 
-              <div className="flex gap-4 pt-4">
-                <button
-                  onClick={() => setAddModalOpen(false)}
-                  className="flex-1 bg-zinc-900 border border-white/10 text-white py-4 rounded-2xl hover:bg-zinc-800 transition-all"
-                >
-                  Annuler
-                </button>
+        <input
+          type="text"
+          placeholder="Lien vidéo YouTube (optionnel)"
+          value={newPost.video}
+          onChange={(e) =>
+            setNewPost({ ...newPost, video: e.target.value })
+          }
+          className="w-full bg-black border border-yellow-500/20 rounded-2xl px-6 py-5 text-white outline-none focus:border-yellow-400"
+        />
 
-                <button
-                  onClick={addPost}
-                  className="flex-1 bg-yellow-500 text-black py-4 rounded-2xl hover:bg-yellow-400 transition-all shadow-[0_0_25px_rgba(255,215,0,0.25)] font-medium"
-                >
-                  Publier le post
-                </button>
-              </div>
-            </div>
-          </div>
+        <div className="flex gap-4 pt-4">
+          <button
+            onClick={() => setAddModalOpen(false)}
+            className="flex-1 bg-zinc-900 border border-white/10 text-white py-4 rounded-2xl hover:bg-zinc-800 transition-all"
+          >
+            Annuler
+          </button>
+
+          <button
+            onClick={addPost}
+            className="flex-1 bg-yellow-500 text-black py-4 rounded-2xl hover:bg-yellow-400 transition-all shadow-[0_0_25px_rgba(255,215,0,0.25)] font-medium"
+          >
+            Publier le post
+          </button>
         </div>
-      )}
+
+        <div className="mt-10 border-t border-yellow-500/10 pt-10">
+
+          <h3 className="text-yellow-400 text-2xl mb-6">
+            Ajouter image MENU
+          </h3>
+
+          <input
+            type="text"
+            placeholder="URL image menu"
+            value={newMenuImage}
+            onChange={(e) => setNewMenuImage(e.target.value)}
+            className="w-full bg-black border border-yellow-500/20 rounded-2xl px-5 py-4 text-white"
+          />
+
+          <button
+            onClick={addMenuImage}
+            className="mt-5 border border-yellow-500/30 px-6 py-3 rounded-2xl text-yellow-400 hover:bg-yellow-500/10 transition-all"
+          >
+            Ajouter MENU
+          </button>
+
+        </div>
+
+        <div className="mt-10 border-t border-yellow-500/10 pt-10">
+
+          <h3 className="text-yellow-400 text-2xl mb-6">
+            Ajouter image EVENEMENT
+          </h3>
+
+          <input
+            type="text"
+            placeholder="URL image événement"
+            value={newEventImage}
+            onChange={(e) => setNewEventImage(e.target.value)}
+            className="w-full bg-black border border-yellow-500/20 rounded-2xl px-5 py-4 text-white"
+          />
+
+          <button
+            onClick={addEventImage}
+            className="mt-5 border border-yellow-500/30 px-6 py-3 rounded-2xl text-yellow-400 hover:bg-yellow-500/10 transition-all"
+          >
+            Ajouter EVENEMENT
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
 
       {/* DELETE MODAL */}
       {deleteModalOpen && (
@@ -973,68 +1097,7 @@ const deletePost = async (id) => {
 
       {eventModalOpen && <EventModal />}
 
-     {/* MENU SECTION */}
-<section
-  id="menu-section"
-  className="py-32 px-6 bg-black border-t border-yellow-500/10"
->
-
-  <div className="max-w-7xl mx-auto">
-
-    <div className="text-center mb-20">
-
-      <p className="text-yellow-400 uppercase tracking-[6px] text-sm">
-        
-      </p>
-
-      <h2
-        style={{ fontFamily: 'Cinzel, serif' }}
-        className="mt-6 text-6xl text-white font-light"
-      >
-        MENU
-      </h2>
-
-      <div className="w-32 h-px bg-yellow-500/30 mx-auto mt-8"></div>
-
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"       MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"                
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
-
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"               MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"              
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
-
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"                MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"                  
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
-
-    </div>
-
-  </div>
-
-</section>
+{/* MENU SECTION */}
   {selectedMenuImage && (
   <div
     onClick={() => setSelectedMenuImage(null)}
@@ -1052,7 +1115,6 @@ const deletePost = async (id) => {
   id="events-section"
   className="py-32 px-6 bg-zinc-950 border-t border-yellow-500/10"
 >
-
   <div className="max-w-7xl mx-auto">
 
     <div className="text-center mb-20">
@@ -1072,24 +1134,32 @@ const deletePost = async (id) => {
 
     </div>
 
-    <div className="flex justify-center">
+    <div className="flex justify-center gap-10 flex-wrap">
 
-      
+      {eventsImages.map((item) => (
+        <div key={item.id} className="relative">
 
-      <img
-        src="https://i.imgur.com/Bvzxhhi.png"              AFFICHE  
-        onClick={() =>
-          setSelectedMenuImage("https://i.imgur.com/Bvzxhhi.png")          
-        }
-        className="max-w-xl w-full rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-      />
+          <img
+            src={item.image}
+            onClick={() =>
+              setSelectedMenuImage(item.image)
+            }
+            className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+          />
 
-     
+          <button
+            onClick={() => deleteEventImage(item.id)}
+            className="absolute top-4 right-4 bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-xl"
+          >
+            X
+          </button>
+
+        </div>
+      ))}
 
     </div>
 
   </div>
-
 </section>
 
 
@@ -1104,6 +1174,7 @@ const deletePost = async (id) => {
   />
 
 </footer>
-    </div>
-  )
+
+</div>
+)
 }
