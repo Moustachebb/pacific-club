@@ -49,6 +49,8 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState('')
   const [adminAction, setAdminAction] = useState('')
   const [accessDenied, setAccessDenied] = useState(false)
+  const [menuImages, setMenuImages] = useState([])
+const [eventImages, setEventImages] = useState([])
 
   const [newPost, setNewPost] = useState({
     title: '',
@@ -97,6 +99,8 @@ useEffect(() => {
     clearTimeout(timer)
   }
 }, [])
+
+
   // =========================
   // AJOUTER UN POST
   // =========================
@@ -134,16 +138,25 @@ useEffect(() => {
     setAddModalOpen(false)
   }
 
-  // =========================
-  // SUPPRIMER UN POST
-  // =========================
-  const deletePost = (indexToDelete) => {
-    const updatedPosts = posts.filter(
-      (_, index) => index !== indexToDelete
-    )
+// =========================
+// SUPPRIMER UN POST
+// =========================
+const deletePost = (indexToDelete) => {
+  const updatedPosts = posts.filter(
+    (_, index) => index !== indexToDelete
+  )
 
-    setPosts(updatedPosts)
-  }
+  setPosts(updatedPosts)
+}
+
+// =========================
+// SUPPRIMER IMAGE MENU
+// =========================
+const deleteMenuImage = (indexToDelete) => {
+  setMenuImages((prev) =>
+    prev.filter((_, index) => index !== indexToDelete)
+  )
+}
 
   // =========================
   // WEBHOOK DISCORD
@@ -170,7 +183,7 @@ useEffect(() => {
     ])
 
     try {
-      const response = await fetch('http://localhost:3001/event', {
+      const response = await fetch(EVENT_WEBHOOK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -236,245 +249,152 @@ useEffect(() => {
       return
     }
 
-    try {
-      await fetch('http://localhost:3001/event', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: 'Pacific Club',
-            embeds: [
-              {
-                title: 'Nouvelle Réservation VIP',
-                color: 15844367,
-                fields: [
-                  {
-                    name: 'Nom / Prénom',
-                    value: fullname,
-                  },
-                  {
-                    name: 'Date',
-                    value: date,
-                    inline: true,
-                  },
-                  {
-                    name: 'Heure',
-                    value: hour,
-                    inline: true,
-                  },
-                  {
-                    name: 'Personnes',
-                    value: people,
-                    inline: true,
-                  },
-                  {
-                    name: 'Commentaire',
-                    value: comment || 'Aucun commentaire',
-                    inline: false,
-                  },
-                ],
-              },
-            ],
-          }),
-        }
-      )
+   try {
+  const response = await fetch(EVENT_WEBHOOK, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username: 'Pacific Club',
+      embeds: [
+        {
+          title: 'Nouvelle Réservation VIP',
+          color: 15844367,
+          fields: [
+            {
+              name: 'Nom / Prénom',
+              value: fullname,
+            },
+            {
+              name: 'Date',
+              value: date,
+              inline: true,
+            },
+            {
+              name: 'Heure',
+              value: hour,
+              inline: true,
+            },
+            {
+              name: 'Personnes',
+              value: people,
+              inline: true,
+            },
+            {
+              name: 'Commentaire',
+              value: comment || 'Aucun commentaire',
+              inline: false,
+            },
+          ],
+        },
+      ],
+    }),
+  })
 
-      alert('Réservation envoyée avec succès')
+  alert('Réservation envoyée avec succès')
 
-      setReservationData({
-        fullname: '',
-        date: '',
-        hour: '',
-        people: '',
-        comment: '',
-      })
+  setReservationData({
+    fullname: '',
+    date: '',
+    hour: '',
+    people: '',
+    comment: '',
+  })
 
-      setReservationOpen(false)
-    } catch (error) {
-      console.error(error)
-      alert('Erreur lors de l’envoi')
-    }
-  }
+  setReservationOpen(false)
 
+} catch (error) {
+  console.error(error)
+  alert('Erreur lors de l’envoi')
+}
+}
   // =========================
   // INTRO
   // =========================
-  if (!loaded) {
-    return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center z-50 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.12),transparent_60%)] animate-pulse"></div>
+  const addMenuImage = async (file) => {
+  const imageUrl = URL.createObjectURL(file)
 
-        {/* LOGO CENTRÉ */}
-<div className="flex flex-col items-center justify-center">
+  setMenuImages((prev) => [
+    ...prev,
+    imageUrl,
+  ])
+}
 
-  <img
-    src="/logo.png"
-    alt="Pacific Club"
-    className="w-[520px] max-w-[90%] drop-shadow-[0_0_40px_rgba(255,215,0,0.5)] animate-pulse"
-  />
 
-  <button
-    onClick={() => setReservationOpen(true)}
-    className="mt-16 px-14 py-4 border border-yellow-500/40 text-yellow-400 uppercase tracking-[6px] text-lg rounded-full hover:bg-yellow-500 hover:text-black transition-all duration-300 shadow-[0_0_25px_rgba(255,215,0,0.25)]"
-  >
-    Réserver
-  </button>
 
-</div>
-        </div>
-      
-    )
-  }
-
+if (!loaded) {
   return (
+    
+    <div className="fixed inset-0 bg-black flex items-center justify-center z-50 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.12),transparent_60%)] animate-pulse"></div>
+
+      <div className="flex flex-col items-center justify-center">
+        <img
+          src="/logo.png"
+          alt="Pacific Club"
+          className="w-[520px] max-w-[90%] drop-shadow-[0_0_40px_rgba(255,215,0,0.5)] animate-pulse"
+        />
+
+        <button
+          onClick={() => setReservationOpen(true)}
+          className="mt-16 px-14 py-4 border border-yellow-500/40 text-yellow-400 uppercase tracking-[6px] text-lg rounded-full hover:bg-yellow-500 hover:text-black transition-all duration-300 shadow-[0_0_25px_rgba(255,215,0,0.25)]"
+        >
+          Réserver
+        </button>
+      </div>
+    </div>
+  )
+}
+
+return (
     <div className="bg-black text-white min-h-screen overflow-x-hidden font-serif">
         
       
-      {/* HERO */}
-      <section className="relative min-h-screen overflow-hidden bg-black">
+      <section className="relative min-h-screen overflow-hidden bg-black flex items-center justify-center">
 
-        {/* BACKGROUND */}
-        <img
-          src={hero || fond}
-          className="absolute inset-0 w-full h-full object-cover opacity-25 scale-105"
-        />
+  {/* BACKGROUND */}
+  <img
+    src={hero || fond}
+    className="absolute inset-0 w-full h-full object-cover opacity-40"
+  />
 
-        <div className="absolute inset-0 bg-black/80"></div>
+  {/* OVERLAY */}
+  <div className="absolute inset-0 bg-black/70"></div>
 
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.10),transparent_40%)]"></div>
+  {/* MENU TOP */}
+  <div className="absolute top-10 left-1/2 -translate-x-1/2 flex gap-12 uppercase tracking-[6px] text-sm text-white z-50">
+    <a href="#">Accueil</a>
+    <a href="#">Club</a>
+    <a href="#">Hotel</a>
+    <a href="#">Evenements</a>
+    <a href="#">Menu</a>
+    <a href="#">Contact</a>
+  </div>
 
-        {/* NAVBAR */}
-        <div className="relative z-20 max-w-7xl mx-auto px-10 pt-10 flex items-center justify-between">
+  {/* HERO CONTENT */}
 
-          
+  <div className="relative z-20 flex flex-col items-center justify-center text-center px-6">
 
-          <div className="hidden md:flex items-center gap-10 uppercase tracking-[4px] text-sm text-white/80">
-            <a href="#" className="hover:text-yellow-400 transition-all">Accueil</a>
-            <a href="#" className="hover:text-yellow-400 transition-all">News</a>
-            <a href="#" className="hover:text-yellow-400 transition-all">Hôtel</a>
-            <a href="#" className="hover:text-yellow-400 transition-all">Événements</a>
-            <button
-              onClick={() =>
-                document
-                  .getElementById('menu-section')
-                  ?.scrollIntoView({ behavior: 'smooth' })
-              }
-              className="hover:text-yellow-400 transition-all"
-            >
-              MENU
-            </button>
-            <a href="#" className="hover:text-yellow-400 transition-all">Contact</a>
-          </div>
+    <img
+      src="/logo.png"
+      alt="Pacific Club"
+      className="w-[520px] max-w-[90%] object-contain drop-shadow-[0_0_35px_rgba(255,215,0,0.45)]"
+    />
 
-          <button
-  onClick={() => setReservationOpen(true)}
-  className="border border-yellow-500/30 px-7 py-3 rounded-full text-yellow-300 tracking-[4px] uppercase text-sm bg-black/30 backdrop-blur-xl hover:bg-yellow-500/10 transition-all"
->
-  Réserver
-</button>
+    <button
+      onClick={() => setReservationOpen(true)}
+      className="mt-16 border border-yellow-500/30 px-14 py-5 rounded-full uppercase tracking-[6px] text-yellow-400 hover:bg-yellow-500 hover:text-black transition-all duration-300"
+    >
+      Réserver
+    </button>
+  </div>
 
-        </div>
-
-        {/* HERO CONTENT */}
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-32">
-
-          {/* BADGE */}
-          <div className="flex items-center gap-6">
-
-            <div className="w-24 h-px bg-yellow-500/40"></div>
-
-            <div className="border border-yellow-500/20 bg-black/40 backdrop-blur-xl text-yellow-300 px-10 py-4 rounded-full uppercase tracking-[8px] text-xs font-light">
-              Pacific Club
-            </div>
-
-            <div className="w-24 h-px bg-yellow-500/40"></div>
-
-          </div>
-
-          {/* TITLE */}
-          <h1
-            style={{ fontFamily: 'Cinzel, serif' }}
-            className="mt-10 text-[90px] md:text-[180px] tracking-[-10px] text-white leading-none font-light"
-          >
-         
-          </h1>
-
-          {/* SUBTITLE */}
-          <div className="mt-10 flex items-center gap-6">
-
-            <div className="w-40 h-px bg-yellow-500/30"></div>
-
-            <p className="text-white/90 tracking-[12px] uppercase text-2xl font-extralight">
-              Club • Hôtel • Nightlife
-            </p>
-
-            <div className="w-40 h-px bg-yellow-500/30"></div>
-
-          </div>
-
-          {/* DESCRIPTION */}
-          <p className="mt-16 max-w-5xl mx-auto text-white/55 text-2xl leading-[60px] font-light">
-          </p>
-
-          {/* BUTTON */}
-         <button
-  onClick={() =>
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: 'smooth',
-    })
-  }
-  className="mt-20 border border-yellow-500/30 px-14 py-6 rounded-full text-yellow-300 tracking-[5px] uppercase text-sm bg-black/40 backdrop-blur-xl hover:bg-yellow-500/10 transition-all duration-300 shadow-[0_0_30px_rgba(255,215,0,0.12)]"
->
-  Découvrir l’expérience
-</button>
-
-          {/* SCROLL */}
-          <div className="mt-24 flex flex-col items-center text-yellow-400/70">
-            <div className="w-px h-16 bg-yellow-500/40"></div>
-
-            <p className="mt-5 tracking-[6px] uppercase text-xs">
-              Scroll
-            </p>
-          </div>
-
-          {/* FEATURES */}
-          <div className="mt-24 w-full border-t border-yellow-500/10 grid grid-cols-1 md:grid-cols-4">
-
-            <div className="py-12 border-r border-yellow-500/10 text-center">
-              <h3 className="text-yellow-400 text-4xl">✦</h3>
-              <p className="mt-5 text-white tracking-[5px] uppercase">Luxe</p>
-              <p className="mt-3 text-white/50">Un service exceptionnel</p>
-            </div>
-
-            <div className="py-12 border-r border-yellow-500/10 text-center">
-              <h3 className="text-yellow-400 text-4xl">♛</h3>
-              <p className="mt-5 text-white tracking-[5px] uppercase">Exclusivité</p>
-              <p className="mt-3 text-white/50">Accès réservé</p>
-            </div>
-
-            <div className="py-12 border-r border-yellow-500/10 text-center">
-              <h3 className="text-yellow-400 text-4xl">✧</h3>
-              <p className="mt-5 text-white tracking-[5px] uppercase">Expérience</p>
-              <p className="mt-3 text-white/50">Des moments uniques</p>
-            </div>
-
-            <div className="py-12 text-center">
-              <h3 className="text-yellow-400 text-4xl">◈</h3>
-              <p className="mt-5 text-white tracking-[5px] uppercase">Élégance</p>
-              <p className="mt-3 text-white/50">Dans chaque détail</p>
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
+</section>
 {/* NEWS */}
+
      <section className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto"></div>
           <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
             <div>
               <p className="text-yellow-500 uppercase tracking-[5px]">
@@ -489,6 +409,7 @@ useEffect(() => {
             <div className="flex gap-4 items-center">
               
 
+              
               <div className="relative group">
   <button
     className="border border-yellow-500/20 bg-black/40 backdrop-blur-md text-yellow-400 px-7 py-4 rounded-2xl hover:border-yellow-400 hover:bg-yellow-500/10 transition-all duration-300 shadow-[0_0_20px_rgba(255,215,0,0.06)] uppercase tracking-[5px] text-sm font-light"
@@ -496,72 +417,178 @@ useEffect(() => {
     ⚜ Panel Admin
   </button>
 
-  <div className="absolute right-0 mt-4 w-80 bg-black/95 border border-yellow-500/20 rounded-[30px] overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-[0_0_35px_rgba(255,215,0,0.08)] z-50 backdrop-blur-xl">
+  <div className="absolute right-0 mt-4 w-[420px] bg-black/95 border border-yellow-500/20 rounded-[35px] overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-[0_0_40px_rgba(255,215,0,0.08)] z-50 backdrop-blur-xl">
 
-    <div className="px-6 py-5 border-b border-yellow-500/10 bg-gradient-to-r from-yellow-500/5 to-transparent">
+    <div className="px-8 py-6 border-b border-yellow-500/10 bg-gradient-to-r from-yellow-500/5 to-transparent">
       <p className="text-yellow-400 uppercase tracking-[5px] text-xs">
-        Pacific Administration
+        Silence Administration
       </p>
 
-      <h3 className="text-white text-2xl mt-3 font-light">
+      <h3 className="text-white text-3xl mt-3 font-light">
         Dashboard
       </h3>
     </div>
 
-    <div className="p-4 space-y-3">
+    <div className="p-5 space-y-4">
 
+      {/* AJOUTER MENU */}
+<button
+  onClick={() => {
+    const password = prompt('Mot de passe admin')
+
+    if (password !== 'Silence') {
+      alert('Accès refusé')
+      return
+    }
+
+    document.getElementById('menuUpload').click()
+  }}
+        className="w-full rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-yellow-400 hover:bg-yellow-500/10 transition-all"
+      >
+        <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
+          Menu
+        </p>
+
+        <h4 className="text-white text-xl mt-2">
+          🍸 Ajouter image menu
+        </h4>
+
+        <p className="text-white/40 text-sm mt-2">
+          Ajouter une image depuis le PC.
+        </p>
+      </button>
+
+      <input
+        id="menuUpload"
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={async (e) => {
+          if (e.target.files[0]) {
+            await addMenuImage(e.target.files[0])
+          }
+        }}
+      />
+
+      {/* SUPPRIMER MENU */}
       <button
         onClick={() => {
-          setAdminAction('add')
-          setAdminLoginOpen(true)
+          const index = prompt(
+            `Numéro image menu à supprimer ? (1 à ${menuImages.length})`
+          )
+
+          if (!index) return
+
+          deleteMenuImage(Number(index) - 1)
         }}
-        className="w-full rounded-2xl border border-yellow-500/10 bg-zinc-900/80 px-5 py-5 text-left hover:border-yellow-400 hover:bg-yellow-500/10 transition-all"
+        className="w-full rounded-3xl border border-red-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-red-400 hover:bg-red-500/10 transition-all"
+      >
+        <p className="text-red-400 uppercase tracking-[4px] text-xs">
+          Menu
+        </p>
+
+        <h4 className="text-white text-xl mt-2">
+          🗑 Supprimer image menu
+        </h4>
+
+        <p className="text-white/40 text-sm mt-2">
+          Retirer une image du menu.
+        </p>
+      </button>
+
+      {/* EVENT */}
+      <button
+  onClick={() => {
+    const password = prompt('Mot de passe admin')
+
+    if (password !== 'Silence') {
+      alert('Accès refusé')
+      return
+    }
+
+    setEventModalOpen(true)
+  }}
+        className="w-full rounded-3xl border border-purple-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-purple-400 hover:bg-purple-500/10 transition-all"
+      >
+        <p className="text-purple-400 uppercase tracking-[4px] text-xs">
+          Event
+        </p>
+
+        <h4 className="text-white text-xl mt-2">
+          🎉 Ajouter événement
+        </h4>
+
+        <p className="text-white/40 text-sm mt-2">
+          Ajouter une affiche événement.
+        </p>
+      </button>
+
+
+      {/* AJOUTER POST */}
+      <button
+        onClick={() => {
+          const password = prompt('Mot de passe admin')
+
+          if (password !== 'Silence') {
+            alert('Accès refusé')
+            return
+          }
+
+          setAddModalOpen(true)
+        }}
+        className="w-full rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-yellow-400 hover:bg-yellow-500/10 transition-all"
       >
         <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
           Publication
         </p>
 
-        <h4 className="text-white text-lg mt-2">
+        <h4 className="text-white text-xl mt-2">
           ➕ Ajouter un post
         </h4>
 
         <p className="text-white/40 text-sm mt-2">
-          Créer une annonce, vidéo ou événement.
+          News, annonce ou vidéo.
         </p>
       </button>
 
+      {/* DELETE POST */}
       <button
         onClick={() => {
-          setAdminAction('delete')
-          setAdminLoginOpen(true)
+          const password = prompt('Mot de passe admin')
+
+          if (password !== 'Silence') {
+            alert('Accès refusé')
+            return
+          }
+
+          setDeleteModalOpen(true)
         }}
-        className="w-full rounded-2xl border border-red-500/10 bg-zinc-900/80 px-5 py-5 text-left hover:border-red-400 hover:bg-red-500/10 transition-all"
+        className="w-full rounded-3xl border border-red-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-red-400 hover:bg-red-500/10 transition-all"
       >
         <p className="text-red-400 uppercase tracking-[4px] text-xs">
           Moderation
         </p>
 
-        <h4 className="text-white text-lg mt-2">
+        <h4 className="text-white text-xl mt-2">
           🗑 Supprimer un post
         </h4>
 
         <p className="text-white/40 text-sm mt-2">
-          Retirer une publication du site.
+          Retirer une publication.
         </p>
       </button>
 
-      <div className="rounded-2xl border border-yellow-500/10 bg-zinc-900/80 px-5 py-5">
+      {/* STATS */}
+      <div className="rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6">
+
         <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
           Statistiques
         </p>
 
-        <h4 className="text-white text-lg mt-2">
-          📊 Activité du site
-        </h4>
+        <div className="grid grid-cols-2 gap-4 mt-5">
 
-        <div className="grid grid-cols-2 gap-3 mt-5">
-          <div className="bg-black/50 rounded-xl p-4 border border-yellow-500/10 text-center">
-            <p className="text-yellow-400 text-2xl font-bold">
+          <div className="bg-black/50 rounded-2xl p-5 border border-yellow-500/10 text-center">
+            <p className="text-yellow-400 text-3xl font-bold">
               {posts.length}
             </p>
 
@@ -570,89 +597,27 @@ useEffect(() => {
             </p>
           </div>
 
-          <div className="bg-black/50 rounded-xl p-4 border border-green-500/10 text-center">
-            <p className="text-green-400 text-2xl font-bold">
+          <div className="bg-black/50 rounded-2xl p-5 border border-green-500/10 text-center">
+            <p className="text-green-400 text-3xl font-bold">
               ON
             </p>
 
             <p className="text-white/40 text-xs mt-2 uppercase tracking-[3px]">
-              Système
+              System
             </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-yellow-500/10 bg-zinc-900/80 px-5 py-5">
-        <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
-          Logs
-        </p>
-
-        <div className="mt-4 space-y-3 text-sm text-white/50">
-          <div className="flex justify-between border-b border-white/5 pb-2">
-            <span>Dernier démarrage</span>
-            <span className="text-green-400">✔ OK</span>
-          </div>
-
-          <div className="flex justify-between border-b border-white/5 pb-2">
-            <span>Webhook Discord</span>
-            <span className="text-green-400">✔ Connecté</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span>Base locale</span>
-            <span className="text-yellow-400">Actif</span>
+            
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-
-
-            </div>
-          </div>
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-10">
-            {posts.map((post, index) => (
-              <div
-                key={index}
-                className="relative bg-black border border-yellow-700/20 rounded-[35px] overflow-hidden hover:border-yellow-500 transition-all"
-              >
-                {post.video ? (
-                  <iframe
-                    className="w-full h-72"
-                    src={post.video.replace('watch?v=', 'embed/')}
-                    title={post.title}
-                    allowFullScreen
-                  ></iframe>
-                ) : (
-                  <img
-                    src={post.image}
-                    className="w-full h-auto object-contain"
-                  />
-                )}
-
-                <div className="p-8">
-                  <p className="text-yellow-500 uppercase tracking-[4px] text-sm">
-                    {post.category}
-                  </p>
-
-                  <h3 className="text-3xl text-yellow-400 mt-5">
-                    {post.title}
-                  </h3>
-
-                  <p className="text-white/60 mt-5 leading-relaxed">
-                    {post.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      {/* MODAL RÉSERVATION */}
+{/* MODAL RÉSERVATION */}
       {reservationOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
           <div className="bg-zinc-950 border border-yellow-500/30 rounded-[35px] max-w-xl w-full p-10 relative shadow-2xl">
@@ -976,10 +941,18 @@ useEffect(() => {
         </div>
       )}
 
-      {eventModalOpen && <EventModal />}
+      {eventModalOpen && (
+  <EventModal
+    createEvent={createEvent}
+    eventData={eventData}
+    setEventData={setEventData}
+    setEventModalOpen={setEventModalOpen}
+  />
+)}
 
      {/* MENU SECTION */}
 <section
+
   id="menu-section"
   className="py-32 px-6 bg-black border-t border-yellow-500/10"
 >
@@ -1005,66 +978,35 @@ useEffect(() => {
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
 
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"       MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"                
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
+{menuImages.map((image, index) => (
+  <div key={index} className="relative group">
 
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"               MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"              
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
+    <img
+      src={image}
+      onClick={() => setSelectedMenuImage(image)}
+      className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+    />
 
-<img
-  src="https://i.imgur.com/Bvzxhhi.png"                MENU A REMPLACER
-  onClick={() =>
-    setSelectedMenuImage(
-      "https://i.imgur.com/Bvzxhhi.png"                  
-    )
-  }
-  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
-/>
+
+  </div>
+))}
 
     </div>
 
   </div>
 
 </section>
-  {selectedMenuImage && (
-  <div
-    onClick={() => setSelectedMenuImage(null)}
-    className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-10"
-  >
-    <img
-      src={selectedMenuImage}
-      className="max-w-full max-h-full rounded-[30px]"
-    />
-  </div>
-)}    
        {/* FOOTER */}
+<footer className="py-16 text-center bg-black border-t border-yellow-700/20">
 
-      <footer className="py-16 text-center bg-black border-t border-yellow-700/20">
-        <h2 className="text-5xl text-yellow-400 tracking-[10px]">
-          PACIFIC
-        </h2>
+  <img
+    src="/logo.png"
+    alt="Pacific Club"
+    className="w-[220px] mx-auto object-contain opacity-90"
+  />
 
-        <p className="mt-5 text-white/50">
-          Los Santos • Luxury • Nightlife
-        </p>
-      
-      
+</footer>
 
-      </footer>
-    </div>
-  )
+</div>
+)
 }

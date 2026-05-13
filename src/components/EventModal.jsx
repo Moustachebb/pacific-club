@@ -18,44 +18,49 @@ export default function EventModal() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/event', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: 'Pacific Events',
-          embeds: [
+  const response = await fetch('https://pacificclub.onrender.com/event', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username: 'Pacific Events',
+      embeds: [
+        {
+          title: 'EVENT • ' + title,
+          description,
+          color: 15844367,
+          image: {
+            url: image,
+          },
+          fields: [
             {
-              title: 'EVENT • ' + title,
-              description,
-              color: 15844367,
-              image: {
-                url: image,
-              },
-              fields: [
-                {
-                  name: 'Date',
-                  value: date,
-                  inline: true,
-                },
-                {
-                  name: 'Heure',
-                  value: hour,
-                  inline: true,
-                },
-              ],
+              name: 'Date',
+              value: date,
+              inline: true,
+            },
+            {
+              name: 'Heure',
+              value: hour,
+              inline: true,
             },
           ],
-        }),
-      })
+        },
+      ],
+    }),
+  })
 
-      if (response.ok) {
-        alert('Événement envoyé sur Discord')
-      }
-    } catch (error) {
-      console.error(error)
-    }
+  console.log(response)
+
+  if (response.ok) {
+    alert('Événement envoyé sur Discord')
+  } else {
+    alert('Erreur serveur')
+  }
+
+} catch (error) {
+  console.error(error)
+}
   }
 
   return (
