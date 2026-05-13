@@ -3,41 +3,22 @@ import fond from './assets/fond.jpg'
 import hero from './assets/hero.png'
 import event1 from './assets/event1.jpg'
 import EventModal from './components/EventModal'
-
+import { db } from './lib/firebase'
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+} from 'firebase/firestore'
 
 export default function App() {
-
-
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = (error) => reject(error)
-    })
-  }
 
   const EVENT_WEBHOOK = 'https://discord.com/api/webhooks/1501915058815504485/7k7562xwZUBJNXAXlvKLD1iXlpNgyXiMXrvg5Z7K67MwfJoJ2e8D0hbScpW9eQBuZ-hS'
   // =========================
   // POSTS STOCKÉS EN LOCAL
   // =========================
-  const [posts, setPosts] = useState(() => {
-    const savedPosts = localStorage.getItem('pacific-posts')
-
-    return savedPosts
-      ? JSON.parse(savedPosts)
-      : [
-          {
-            title: 'Black Diamond Night',
-            description:
-              'DJ internationaux, ambiance premium et accès VIP.',
-            image:
-              'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop',
-            category: 'EVENT',
-            video: '',
-          },
-        ]
-  })
+const [posts, setPosts] = useState([])
 
   // =========================
   // STATES
@@ -46,7 +27,23 @@ export default function App() {
   const [reservationOpen, setReservationOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deletePostId, setDeletePostId] = useState('')
+  const [selectedMenuImage, setSelectedMenuImage] = useState(null)
+  useEffect(() => {
+  loadNews()
+}, [])
 
+const loadNews = async () => {
+  const querySnapshot = await getDocs(
+    collection(db, 'pacific_news')
+  )
+
+  const newsData = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
+
+  setPosts(newsData)
+}
   // =========================
   // ADD POST MODAL
   // =========================
@@ -110,50 +107,43 @@ useEffect(() => {
   // =========================
   // AJOUTER UN POST
   // =========================
-  const addPost = () => {
-    if (posts.length >= 6) {
-      alert('Maximum 6 posts')
-      return
-    }
+ const addPost = async () => {
+  const { title, description, image, video } = newPost
 
-    const { title, description, image, video } = newPost
-
-    if (!title || !description) {
-      alert('Veuillez remplir les champs requis')
-      return
-    }
-
-    setPosts([
-      {
-        title,
-        description,
-        image,
-        video,
-        category: 'NEWS',
-      },
-      ...posts,
-    ])
-
-    setNewPost({
-      title: '',
-      description: '',
-      image: '',
-      video: '',
-    })
-
-    setAddModalOpen(false)
+  if (!title || !description) {
+    alert('Veuillez remplir les champs requis')
+    return
   }
+
+  await addDoc(collection(db, 'pacific_news'), {
+    title,
+    description,
+    image,
+    video,
+    category: 'NEWS',
+    createdAt: Date.now(),
+  })
+
+  await loadNews()
+
+  setNewPost({
+    title: '',
+    description: '',
+    image: '',
+    video: '',
+  })
+
+  setAddModalOpen(false)
+}
 
   // =========================
   // SUPPRIMER UN POST
   // =========================
-  const deletePost = (indexToDelete) => {
-    const updatedPosts = posts.filter(
-      (_, index) => index !== indexToDelete
-    )
+const deletePost = async (id) => {
+  await deleteDoc(doc(db, 'pacific_news', id))
 
-    setPosts(updatedPosts)
-  }
+  await loadNews()
+}
 
   // =========================
   // WEBHOOK DISCORD
@@ -180,7 +170,7 @@ useEffect(() => {
     ])
 
     try {
-      const response = await fetch(EVENT_WEBHOOK, {
+      const response = await fetch('http://localhost:3001/event', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -247,7 +237,7 @@ useEffect(() => {
     }
 
     try {
-      await fetch(EVENT_WEBHOOK, {
+      await fetch('http://localhost:3001/event', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -350,20 +340,33 @@ useEffect(() => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.10),transparent_40%)]"></div>
 
         {/* NAVBAR */}
-        <div className="relative z-20 max-w-7xl mx-auto px-10 pt-10 flex items-center justify-between">
+        <div className="relative z-20 max-w-7xl mx-auto px-10 pt-10 flex items-center justify-center">
 
-          <h1
-            style={{ fontFamily: 'Cinzel, serif' }}
-            className="text-yellow-400 text-5xl tracking-[-4px]"
-          >
-            PC
-          </h1>
+         
 
           <div className="hidden md:flex items-center gap-10 uppercase tracking-[4px] text-sm text-white/80">
             <a href="#" className="hover:text-yellow-400 transition-all">Accueil</a>
-            <a href="#" className="hover:text-yellow-400 transition-all">Club</a>
+            <button
+  onClick={() =>
+    document
+      .getElementById('news-section')
+      ?.scrollIntoView({ behavior: 'smooth' })
+  }
+  className="hover:text-yellow-400 transition-all"
+>
+  NEWS
+</button>
             <a href="#" className="hover:text-yellow-400 transition-all">Hôtel</a>
-            <a href="#" className="hover:text-yellow-400 transition-all">Événements</a>
+            <button
+  onClick={() =>
+    document
+      .getElementById('events-section')
+      ?.scrollIntoView({ behavior: 'smooth' })
+  }
+  className="hover:text-yellow-400 transition-all"
+>
+  EVENEMENTS
+</button>
             <button
               onClick={() =>
                 document
@@ -377,12 +380,7 @@ useEffect(() => {
             <a href="#" className="hover:text-yellow-400 transition-all">Contact</a>
           </div>
 
-          <button
-  onClick={() => setReservationOpen(true)}
-  className="border border-yellow-500/30 px-7 py-3 rounded-full text-yellow-300 tracking-[4px] uppercase text-sm bg-black/30 backdrop-blur-xl hover:bg-yellow-500/10 transition-all"
->
-  Réserver
-</button>
+   
 
         </div>
 
@@ -390,17 +388,7 @@ useEffect(() => {
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-32">
 
           {/* BADGE */}
-          <div className="flex items-center gap-6">
-
-            <div className="w-24 h-px bg-yellow-500/40"></div>
-
-            <div className="border border-yellow-500/20 bg-black/40 backdrop-blur-xl text-yellow-300 px-10 py-4 rounded-full uppercase tracking-[8px] text-xs font-light">
-              Pacific Club
-            </div>
-
-            <div className="w-24 h-px bg-yellow-500/40"></div>
-
-          </div>
+        
 
           {/* TITLE */}
           <h1
@@ -415,9 +403,11 @@ useEffect(() => {
 
             <div className="w-40 h-px bg-yellow-500/30"></div>
 
-            <p className="text-white/90 tracking-[12px] uppercase text-2xl font-extralight">
-              Club • Hôtel • Nightlife
-            </p>
+       <img
+  src="/logo.png"
+  alt="Pacific Club"
+  className="h-100 w-auto object-contain -mt-30"
+/>
 
             <div className="w-40 h-px bg-yellow-500/30"></div>
 
@@ -428,16 +418,11 @@ useEffect(() => {
           </p>
 
           {/* BUTTON */}
-         <button
-  onClick={() =>
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: 'smooth',
-    })
-  }
+<button
+  onClick={() => setReservationOpen(true)}
   className="mt-20 border border-yellow-500/30 px-14 py-6 rounded-full text-yellow-300 tracking-[5px] uppercase text-sm bg-black/40 backdrop-blur-xl hover:bg-yellow-500/10 transition-all duration-300 shadow-[0_0_30px_rgba(255,215,0,0.12)]"
 >
-  Découvrir l’expérience
+  Réserver
 </button>
 
           {/* SCROLL */}
@@ -483,7 +468,7 @@ useEffect(() => {
       </section>
 
 {/* NEWS */}
-     <section className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
+     <section id="news-section" className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
             <div>
@@ -653,7 +638,7 @@ useEffect(() => {
                   </h3>
 
                   <p className="text-white/60 mt-5 leading-relaxed">
-                    {post.description}
+                    post.content
                   </p>
                 </div>
               </div>
@@ -813,7 +798,7 @@ useEffect(() => {
 
                 <button
                   onClick={() => {
-                    if (adminPassword !== 'pacificvip') {
+                    if (adminPassword !== 'Silence') {
                       setAccessDenied(true)
                       return
                     }
@@ -999,7 +984,7 @@ useEffect(() => {
     <div className="text-center mb-20">
 
       <p className="text-yellow-400 uppercase tracking-[6px] text-sm">
-        Pacific Club
+        
       </p>
 
       <h2
@@ -1015,41 +1000,110 @@ useEffect(() => {
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
 
-      <img
-        src="https://i.imgur.com/Bvzxhhi.png"    MENU A REMPLACER
-        className="rounded-[30px] border border-yellow-500/10"
-      />
+<img
+  src="https://i.imgur.com/Bvzxhhi.png"       MENU A REMPLACER
+  onClick={() =>
+    setSelectedMenuImage(
+      "https://i.imgur.com/Bvzxhhi.png"                
+    )
+  }
+  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+/>
 
-      <img
-        src="https://i.imgur.com/Bvzxhhi.png"    MENU A REMPLACER
-        className="rounded-[30px] border border-yellow-500/10"
-      />
+<img
+  src="https://i.imgur.com/Bvzxhhi.png"               MENU A REMPLACER
+  onClick={() =>
+    setSelectedMenuImage(
+      "https://i.imgur.com/Bvzxhhi.png"              
+    )
+  }
+  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+/>
 
-      <img
-        src="https://i.imgur.com/Bvzxhhi.png"   MENU A REMPLACER
-        className="rounded-[30px] border border-yellow-500/10"
-      />
+<img
+  src="https://i.imgur.com/Bvzxhhi.png"                MENU A REMPLACER
+  onClick={() =>
+    setSelectedMenuImage(
+      "https://i.imgur.com/Bvzxhhi.png"                  
+    )
+  }
+  className="rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+/>
 
     </div>
 
   </div>
 
 </section>
-      
-       {/* FOOTER */}
+  {selectedMenuImage && (
+  <div
+    onClick={() => setSelectedMenuImage(null)}
+    className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-10"
+  >
+    <img
+      src={selectedMenuImage}
+      className="max-w-full max-h-full rounded-[30px]"
+    />
+  </div>
+)}    
+       
+{/* EVENTS SECTION */}
+<section
+  id="events-section"
+  className="py-32 px-6 bg-zinc-950 border-t border-yellow-500/10"
+>
 
-      <footer className="py-16 text-center bg-black border-t border-yellow-700/20">
-        <h2 className="text-5xl text-yellow-400 tracking-[10px]">
-          PACIFIC
-        </h2>
+  <div className="max-w-7xl mx-auto">
 
-        <p className="mt-5 text-white/50">
-          Los Santos • Luxury • Nightlife
-        </p>
-      
+    <div className="text-center mb-20">
+
+      <p className="text-yellow-400 uppercase tracking-[6px] text-sm">
+        Pacific Club
+      </p>
+
+      <h2
+        style={{ fontFamily: 'Cinzel, serif' }}
+        className="mt-6 text-6xl text-white font-light"
+      >
+        ÉVÉNEMENTS
+      </h2>
+
+      <div className="w-32 h-px bg-yellow-500/30 mx-auto mt-8"></div>
+
+    </div>
+
+    <div className="flex justify-center">
+
       
 
-      </footer>
+      <img
+        src="https://i.imgur.com/Bvzxhhi.png"              AFFICHE  
+        onClick={() =>
+          setSelectedMenuImage("https://i.imgur.com/Bvzxhhi.png")          
+        }
+        className="max-w-xl w-full rounded-[30px] border border-yellow-500/10 cursor-pointer hover:scale-[1.02] transition-all duration-300"
+      />
+
+     
+
+    </div>
+
+  </div>
+
+</section>
+
+
+{/* FOOTER */}
+
+    <footer className="py-16 flex justify-center bg-black border-t border-yellow-700/20">
+
+  <img
+    src="/logo.png"
+    alt="Pacific Club"
+    className="h-48 w-auto object-contain opacity-90"
+  />
+
+</footer>
     </div>
   )
 }
