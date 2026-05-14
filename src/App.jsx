@@ -17,24 +17,7 @@ export default function App() {
   // =========================
   // POSTS STOCKÉS EN LOCAL
   // =========================
-  const [posts, setPosts] = useState(() => {
-    const savedPosts = localStorage.getItem('pacific-posts')
-
-    return savedPosts
-      ? JSON.parse(savedPosts)
-      : [
-          {
-            title: 'Black Diamond Night',
-            description:
-              'DJ internationaux, ambiance premium et accès VIP.',
-            image:
-              'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop',
-            category: 'EVENT',
-            video: '',
-          },
-        ]
-  })
-
+ const [posts, setPosts] = useState([])
   // =========================
   // STATES
   // =========================
@@ -59,6 +42,7 @@ export default function App() {
 
 const [menuImages, setMenuImages] = useState([])
 const [eventImages, setEventImages] = useState([])
+const [eventPosterOpen, setEventPosterOpen] = useState(false)
 
   const [newPost, setNewPost] = useState({
     title: '',
@@ -91,9 +75,7 @@ const [eventImages, setEventImages] = useState([])
   // =========================
   // SAVE POSTS
   // =========================
-  useEffect(() => {
-    localStorage.setItem('pacific-posts', JSON.stringify(posts))
-  }, [posts])
+  
 
   useEffect(() => {
 
@@ -167,7 +149,31 @@ useEffect(() => {
   }
 }, [])
 
+useEffect(() => {
 
+  const loadPosts = async () => {
+
+    try {
+
+      const snapshot = await getDocs(collection(db, 'posts'))
+
+      const firebasePosts = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+
+      setPosts(firebasePosts)
+
+    } catch (error) {
+
+      console.error(error)
+
+    }
+  }
+
+  loadPosts()
+
+}, [])
   // =========================
   // AJOUTER UN POST
   // =========================
@@ -258,13 +264,21 @@ const deleteMenuImage = (indexToDelete) => {
       alert('Veuillez remplir les champs requis')
       return
     }
-
+    
+await addDoc(collection(db, 'posts'), {
+  title,
+  description,
+  image,
+  category: 'event',
+  video: '',
+  createdAt: Date.now(),
+})
     setPosts([
       {
         title,
         description,
         image,
-        category: 'EVENT',
+        category: 'event',
         video: '',
       },
       ...posts,
@@ -328,7 +342,47 @@ const deleteMenuImage = (indexToDelete) => {
 
     setEventModalOpen(false)
   }
+const postEventPoster = async () => {
 
+  const { title, description, image } = eventData
+
+  if (!title || !description || !image) {
+    alert('Champs manquants')
+    return
+  }
+
+  try {
+
+    await addDoc(collection(db, 'posts'), {
+      title,
+      description,
+      image,
+      category: 'event',
+      video: '',
+      createdAt: Date.now(),
+    })
+
+    setPosts((prev) => [
+      {
+        title,
+        description,
+        image,
+        category: 'event',
+        video: '',
+      },
+      ...prev,
+    ])
+
+    setEventPosterOpen(false)
+
+    alert('Affiche publiée')
+
+  } catch (error) {
+
+    console.error(error)
+
+  }
+}
   const reserveClub = async () => {
     const { fullname, date, hour, people, comment } = reservationData
 
@@ -454,7 +508,7 @@ return (
     <div className="bg-black text-white min-h-screen w-screen overflow-x-hidden font-serif">
         
       
-      <section className="relative w-screen min-h-screen overflow-hidden bg-black flex items-center justify-center">
+      <section id="hero" className="relative w-screen min-h-screen overflow-hidden bg-black flex items-center justify-center">
 
   {/* BACKGROUND */}
   <img
@@ -467,11 +521,11 @@ return (
 
   {/* MENU TOP */}
   <div className="absolute top-10 left-0 w-full flex justify-center gap-16 uppercase tracking-[6px] text-sm text-white z-50 px-10">
-    <a href="#">Accueil</a>
-    <a href="#">Club</a>
+    <a href="#hero">Accueil</a>
+    <a href="#news">News</a>
     <a href="#">Hotel</a>
-    <a href="#">Evenements</a>
-    <a href="#">Menu</a>
+    <a href="#events">Événements</a>
+    <a href="#menu">Menu</a>
     <a href="#">Contact</a>
   </div>
 
@@ -494,220 +548,62 @@ return (
   </div>
 
 </section>
+
 {/* NEWS */}
+<section id="news" className="py-28 px-6 border-t border-yellow-700/20 bg-zinc-950">
+  <div className="max-w-7xl mx-auto">
+    <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
+      <div>
+        <p className="text-yellow-500 uppercase tracking-[5px]">
+          News & Events
+        </p>
 
-     <section className="w-full py-28 px-12 border-t border-yellow-700/20 bg-zinc-950">
-        <div className="w-full max-w-none px-0"></div>
-          <div className="flex flex-wrap justify-between items-center gap-5 mb-16">
-            <div>
-              <p className="text-yellow-500 uppercase tracking-[5px]">
-                News & Events
-              </p>
-
-              <h2 className="text-5xl md:text-6xl text-white mt-4">
-                Actualités du Club
-              </h2>
-            </div>
-
-            <div className="flex gap-4 items-center">
-              
-
-              
-              <div className="relative group">
-  <button
-    className="border border-yellow-500/20 bg-black/40 backdrop-blur-md text-yellow-400 px-7 py-4 rounded-2xl hover:border-yellow-400 hover:bg-yellow-500/10 transition-all duration-300 shadow-[0_0_20px_rgba(255,215,0,0.06)] uppercase tracking-[5px] text-sm font-light"
-  >
-    ⚜ Panel Admin
-  </button>
-
-  <div className="absolute right-0 mt-4 w-[420px] bg-black/95 border border-yellow-500/20 rounded-[35px] overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-[0_0_40px_rgba(255,215,0,0.08)] z-50 backdrop-blur-xl">
-
-    <div className="px-8 py-6 border-b border-yellow-500/10 bg-gradient-to-r from-yellow-500/5 to-transparent">
-      <p className="text-yellow-400 uppercase tracking-[5px] text-xs">
-        Silence Administration
-      </p>
-
-      <h3 className="text-white text-3xl mt-3 font-light">
-        Dashboard
-      </h3>
+        <h2 className="text-5xl md:text-6xl text-white mt-4">
+          Actualités du Club
+        </h2>
+      </div>
     </div>
 
-    <div className="p-5 space-y-4">
+    <div className="grid lg:grid-cols-3 gap-10">
+      {posts
+  .filter((post) => post.category === 'NEWS')
+  .map((post, index) => (
+        <div
+          key={index}
+          className="relative bg-black border border-yellow-700/20 rounded-[35px] overflow-hidden"
+        >
+          {post.video ? (
+            <iframe
+              className="w-full h-72"
+              src={post.video.replace('watch?v=', 'embed/')}
+              title={post.title}
+              allowFullScreen
+            />
+          ) : (
+            <img
+              src={post.image}
+              className="w-full h-auto object-contain"
+            />
+          )}
 
-      {/* AJOUTER MENU */}
-<button
-  onClick={() => {
-    const password = prompt('Mot de passe admin')
-
-    if (password !== 'Silence') {
-      alert('Accès refusé')
-      return
-    }
-
-    addMenuImage()
-  }}
-        className="w-full rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-yellow-400 hover:bg-yellow-500/10 transition-all"
-      >
-        <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
-          Menu
-        </p>
-
-        <h4 className="text-white text-xl mt-2">
-          🍸 Ajouter image menu
-        </h4>
-
-        <p className="text-white/40 text-sm mt-2">
-          Ajouter une image depuis le PC.
-        </p>
-      </button>
-
-
-      {/* SUPPRIMER MENU */}
-      <button
-        onClick={() => {
-          const index = prompt(
-            `Numéro image menu à supprimer ? (1 à ${menuImages.length})`
-          )
-
-          if (!index) return
-
-          deleteMenuImage(Number(index) - 1)
-        }}
-        className="w-full rounded-3xl border border-red-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-red-400 hover:bg-red-500/10 transition-all"
-      >
-        <p className="text-red-400 uppercase tracking-[4px] text-xs">
-          Menu
-        </p>
-
-        <h4 className="text-white text-xl mt-2">
-          🗑 Supprimer image menu
-        </h4>
-
-        <p className="text-white/40 text-sm mt-2">
-          Retirer une image du menu.
-        </p>
-      </button>
-
-      {/* EVENT */}
-      <button
-  onClick={() => {
-    const password = prompt('Mot de passe admin')
-
-    if (password !== 'Silence') {
-      alert('Accès refusé')
-      return
-    }
-
-    setEventModalOpen(true)
-  }}
-        className="w-full rounded-3xl border border-purple-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-purple-400 hover:bg-purple-500/10 transition-all"
-      >
-        <p className="text-purple-400 uppercase tracking-[4px] text-xs">
-          Event
-        </p>
-
-        <h4 className="text-white text-xl mt-2">
-          🎉 Ajouter événement
-        </h4>
-
-        <p className="text-white/40 text-sm mt-2">
-          Ajouter une affiche événement.
-        </p>
-      </button>
-
-
-      {/* AJOUTER POST */}
-      <button
-        onClick={() => {
-          const password = prompt('Mot de passe admin')
-
-          if (password !== 'Silence') {
-            alert('Accès refusé')
-            return
-          }
-
-          setAddModalOpen(true)
-        }}
-        className="w-full rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-yellow-400 hover:bg-yellow-500/10 transition-all"
-      >
-        <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
-          Publication
-        </p>
-
-        <h4 className="text-white text-xl mt-2">
-          ➕ Ajouter un post
-        </h4>
-
-        <p className="text-white/40 text-sm mt-2">
-          News, annonce ou vidéo.
-        </p>
-      </button>
-
-      {/* DELETE POST */}
-      <button
-        onClick={() => {
-          const password = prompt('Mot de passe admin')
-
-          if (password !== 'Silence') {
-            alert('Accès refusé')
-            return
-          }
-
-          setDeleteModalOpen(true)
-        }}
-        className="w-full rounded-3xl border border-red-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-red-400 hover:bg-red-500/10 transition-all"
-      >
-        <p className="text-red-400 uppercase tracking-[4px] text-xs">
-          Moderation
-        </p>
-
-        <h4 className="text-white text-xl mt-2">
-          🗑 Supprimer un post
-        </h4>
-
-        <p className="text-white/40 text-sm mt-2">
-          Retirer une publication.
-        </p>
-      </button>
-
-      {/* STATS */}
-      <div className="rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6">
-
-        <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
-          Statistiques
-        </p>
-
-        <div className="grid grid-cols-2 gap-4 mt-5">
-
-          <div className="bg-black/50 rounded-2xl p-5 border border-yellow-500/10 text-center">
-            <p className="text-yellow-400 text-3xl font-bold">
-              {posts.length}
+          <div className="p-8">
+            <p className="text-yellow-500 uppercase tracking-[4px] text-sm">
+              {post.category}
             </p>
 
-            <p className="text-white/40 text-xs mt-2 uppercase tracking-[3px]">
-              Posts
-            </p>
-          </div>
+            <h3 className="text-3xl text-yellow-400 mt-5">
+              {post.title}
+            </h3>
 
-          <div className="bg-black/50 rounded-2xl p-5 border border-green-500/10 text-center">
-            <p className="text-green-400 text-3xl font-bold">
-              ON
+            <p className="text-white/60 mt-5 leading-relaxed">
+              {post.description}
             </p>
-
-            <p className="text-white/40 text-xs mt-2 uppercase tracking-[3px]">
-              System
-            </p>
-            
           </div>
         </div>
-      </div>
+      ))}
     </div>
   </div>
-</div>
-
-        </div>
-      </div>
-    </section>
+</section>
 
 {/* MODAL RÉSERVATION */}
       {reservationOpen && (
@@ -1044,7 +940,7 @@ return (
 
      {/* MENU SECTION */}
 <section
-  id="menu-section"
+  id="menu"
   className="w-full py-32 px-12 bg-black border-t border-yellow-500/10"
 >
 
@@ -1087,43 +983,143 @@ return (
   </div>
 
 </section>
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 w-full mt-16">
 
-  {posts.map((post, index) => (
+{/* EVENTS */}
+<section id="events" className="w-full py-28 px-6 bg-black border-t border-yellow-700/20">
 
-    <div
-      key={index}
-      className="bg-black/40 border border-yellow-500/10 rounded-[30px] overflow-hidden"
+  <div className="max-w-7xl mx-auto">
+
+    <div className="mb-16 text-center">
+
+      <p className="text-yellow-500 uppercase tracking-[5px]">
+        Pacific Club
+      </p>
+
+      <h2 className="text-5xl md:text-6xl text-white mt-4">
+        Événements
+      </h2>
+
+    </div>
+
+    <div className="grid lg:grid-cols-3 gap-10">
+
+      {posts
+  .filter((post) => 
+    post.category === 'event' ||
+    post.category === 'EVENT'
+  )
+  .map((post, index) => (
+
+          <div
+            key={index}
+            className="relative bg-zinc-900 border border-yellow-700/20 rounded-[35px] overflow-hidden"
+          >
+
+            {post.image && (
+              <img
+                src={post.image}
+                className="w-full h-auto object-cover"
+              />
+            )}
+
+            <div className="p-8">
+
+              <p className="text-purple-400 uppercase tracking-[4px] text-sm">
+                EVENT
+              </p>
+
+              <h3 className="text-3xl text-yellow-400 mt-5">
+                {post.title}
+              </h3>
+
+              <p className="text-white/60 mt-5 leading-relaxed">
+                {post.description}
+              </p>
+
+            </div>
+
+          </div>
+
+      ))}
+
+    </div>
+
+  </div>
+
+</section>
+<div className="w-full flex justify-center mt-20 mb-10">
+
+  <div className="relative group">
+
+    <button
+      className="border border-yellow-500/20 bg-black/40 backdrop-blur-md text-yellow-400 px-7 py-4 rounded-2xl hover:border-yellow-400 hover:bg-yellow-500/10 transition-all duration-300 uppercase tracking-[5px] text-sm"
     >
+      ⚜ Panel Admin
+    </button>
 
-      {post.image && (
-        <img
-          src={post.image}
-          className="w-full h-[260px] object-cover"
-        />
-      )}
+    <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-[420px] bg-black/95 border border-yellow-500/20 rounded-[35px] overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
 
-      <div className="p-6">
+      <div className="p-5 space-y-4">
 
-        <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
-          {post.category}
-        </p>
+        <button
+          onClick={() => {
+            const password = prompt('Mot de passe admin')
 
-        <h3 className="text-white text-2xl mt-4">
-          {post.title}
-        </h3>
+            if (password !== 'LH') {
+              alert('Accès refusé')
+              return
+            }
 
-        <p className="text-white/60 mt-4 leading-relaxed">
-          {post.description}
-        </p>
+            setAddModalOpen(true)
+          }}
+          className="w-full rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-yellow-400 hover:bg-yellow-500/10 transition-all"
+        >
+          ➕ Ajouter un post
+        </button>
 
+        <button
+          onClick={() => {
+            const password = prompt('Mot de passe admin')
+
+            if (password !== 'LH') {
+              alert('Accès refusé')
+              return
+            }
+
+            setEventModalOpen(true)
+          }}
+          className="w-full rounded-3xl border border-purple-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-purple-400 hover:bg-purple-500/10 transition-all"
+        >
+          🎉 Créer un événement
+        </button>
+
+        <button
+          onClick={() => setDeleteModalOpen(true)}
+          className="w-full rounded-3xl border border-red-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-red-400 hover:bg-red-500/10 transition-all"
+        >
+          🗑 Supprimer un post
+        </button>
+
+        <button
+          onClick={addMenuImage}
+          className="w-full rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-yellow-400 hover:bg-yellow-500/10 transition-all"
+        >
+          🍸 Ajouter image menu
+        </button>
+        <button
+          onClick={() => setEventPosterOpen(true)}
+          className="w-full rounded-3xl border border-pink-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-pink-400 hover:bg-pink-500/10 transition-all"
+           >
+          🖼 Poster une affiche événement
+        </button>
       </div>
 
     </div>
 
-  ))}
+  </div>
 
 </div>
+{/* EVENTS */}
 
        {/* FOOTER */}
 <footer className="py-16 text-center bg-black border-t border-yellow-700/20">
@@ -1133,9 +1129,73 @@ return (
     alt="Pacific Club"
     className="w-[340px] mx-auto object-contain opacity-90"
   />
+{eventPosterOpen && (
 
+  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+
+    <div className="bg-zinc-950 border border-pink-500/20 rounded-[35px] p-10 w-full max-w-2xl">
+
+      <h2 className="text-4xl text-white mb-10">
+        Poster une affiche
+      </h2>
+
+      <div className="space-y-5">
+
+        <input
+          type="text"
+          placeholder="Titre"
+          value={eventData.title}
+          onChange={(e) =>
+            setEventData({
+              ...eventData,
+              title: e.target.value,
+            })
+          }
+          className="w-full bg-black border border-white/10 rounded-2xl px-6 py-5 text-white"
+        />
+
+        <textarea
+          placeholder="Description"
+          value={eventData.description}
+          onChange={(e) =>
+            setEventData({
+              ...eventData,
+              description: e.target.value,
+            })
+          }
+          className="w-full bg-black border border-white/10 rounded-2xl px-6 py-5 text-white h-40"
+        />
+
+        <input
+          type="text"
+          placeholder="Lien image"
+          value={eventData.image}
+          onChange={(e) =>
+            setEventData({
+              ...eventData,
+              image: e.target.value,
+            })
+          }
+          className="w-full bg-black border border-white/10 rounded-2xl px-6 py-5 text-white"
+        />
+
+        <button
+          onClick={postEventPoster}
+          className="w-full py-5 rounded-2xl bg-pink-500 text-white"
+        >
+          Publier l'affiche
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
 </footer>
 </div>
+
 )
 
 }
