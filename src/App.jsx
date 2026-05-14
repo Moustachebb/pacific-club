@@ -1016,7 +1016,7 @@ return (
 
     </div>
 
-    <div className="grid lg:grid-cols-3 gap-10">
+    <div className="flex justify-center">
 
       {posts
   .filter((post) => 
@@ -1027,7 +1027,7 @@ return (
 
           <div
             key={index}
-            className="relative bg-zinc-900 border border-yellow-700/20 rounded-[35px] overflow-hidden"
+            className="relative w-full max-w-2xl bg-zinc-900 border border-purple-500/20 rounded-[35px] overflow-hidden"
           >
 
             {post.image && (
