@@ -117,6 +117,27 @@ const [eventImages, setEventImages] = useState([])
   useEffect(() => {
     localStorage.setItem('pacific-posts', JSON.stringify(posts))
   }, [posts])
+
+  useEffect(() => {
+
+  const loadPosts = async () => {
+
+    const querySnapshot = await getDocs(
+      collection(db, 'posts')
+    )
+
+    const firebasePosts = []
+
+    querySnapshot.forEach((doc) => {
+      firebasePosts.push(doc.data())
+    })
+
+    setPosts(firebasePosts)
+  }
+
+  loadPosts()
+
+}, [])
   useEffect(() => {
 
   const loadMenuImages = async () => {
@@ -163,20 +184,32 @@ useEffect(() => {
   // =========================
   // AJOUTER UN POST
   // =========================
-  const addPost = () => {
-    if (posts.length >= 6) {
-      alert('Maximum 6 posts')
-      return
-    }
+ const addPost = async () => {
 
-    const { title, description, image, video } = newPost
+  if (posts.length >= 6) {
+    alert('Maximum 6 posts')
+    return
+  }
 
-    if (!title || !description) {
-      alert('Veuillez remplir les champs requis')
-      return
-    }
+  const { title, description, image, video } = newPost
 
-    setPosts([
+  if (!title || !description) {
+    alert('Veuillez remplir les champs requis')
+    return
+  }
+
+  try {
+
+    await addDoc(collection(db, 'posts'), {
+      title,
+      description,
+      image,
+      video,
+      category: 'NEWS',
+      createdAt: Date.now(),
+    })
+
+    setPosts((prev) => [
       {
         title,
         description,
@@ -184,7 +217,7 @@ useEffect(() => {
         video,
         category: 'NEWS',
       },
-      ...posts,
+      ...prev,
     ])
 
     setNewPost({
@@ -195,7 +228,16 @@ useEffect(() => {
     })
 
     setAddModalOpen(false)
+
+    console.log('POST SAVED')
+
+  } catch (error) {
+
+    console.error(error)
+    alert('Erreur Firebase')
+
   }
+}
 
 // =========================
 // SUPPRIMER UN POST
