@@ -1027,7 +1027,7 @@ return (
 
           <div
             key={index}
-            className="relative w-full max-w-2xl bg-zinc-900 border border-purple-500/20 rounded-[35px] overflow-hidden"
+            className="relative w-full max-w-2xl bg-zinc-900 border border-white/20 rounded-[35px] overflow-hidden"
           >
 
             {post.image && (
@@ -1039,7 +1039,7 @@ return (
 
             <div className="p-8">
 
-              <p className="text-purple-400 uppercase tracking-[4px] text-sm">
+              <p className="text-white uppercase tracking-[4px] text-sm">
                 EVENT
               </p>
 
