@@ -536,7 +536,7 @@ return (
     <img
       src="/logo2.png"
       alt="Pacific Club"
-      className="w-[850px] max-w-[95%] object-contain drop-shadow-[0_0_35px_rgba(255,215,0,0.45)]"
+      className="w-[650px] max-w-[85%] object-contain drop-shadow-[0_0_35px_rgba(255,215,0,0.45)]"
     />
 
     <button
