@@ -511,11 +511,17 @@ return (
       <section id="hero" className="relative w-screen min-h-screen overflow-hidden bg-black flex items-center justify-center">
 
   {/* BACKGROUND */}
-  <img
-    src={hero || fond}
-    className="absolute inset-0 w-full h-full object-cover opacity-40"
-  />
-
+  <video
+  autoPlay
+  muted
+  loop
+  playsInline
+  className="absolute inset-0 w-full h-full object-cover opacity-40"
+>
+  <source src="/hero.mp4" type="video/mp4" />
+</video>
+    
+  
   {/* OVERLAY */}
   <div className="absolute inset-0 bg-black/70"></div>
 
