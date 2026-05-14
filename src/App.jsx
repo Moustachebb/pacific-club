@@ -488,8 +488,7 @@ if (!loaded) {
 
       <div className="flex flex-col items-center justify-center">
         <img
-          src="/logo2
-          .png"
+          src="/logo2.png"
           alt="Pacific Club"
           className="w-[520px] max-w-[90%] drop-shadow-[0_0_40px_rgba(255,215,0,0.5)] animate-pulse"
         />
