@@ -56,26 +56,29 @@ export default function App() {
   const [adminAction, setAdminAction] = useState('')
   const [accessDenied, setAccessDenied] = useState(false)
   const [menuImages, setMenuImages] = useState([])
-  useEffect(() => {
-  loadMenuImages()
-}, [])
+  const addMenuImage = async () => {
 
-const loadMenuImages = async () => {
+  const imageUrl = prompt('Lien image')
+
+  if (!imageUrl) return
+
   try {
-    const querySnapshot = await getDocs(
-      collection(db, 'menus')
-    )
 
-    const images = []
-
-    querySnapshot.forEach((doc) => {
-      images.push(doc.data().url)
+    await addDoc(collection(db, 'menuImages'), {
+      image: imageUrl,
     })
 
-    setMenuImages(images)
+    setMenuImages((prev) => [
+      ...prev,
+      imageUrl,
+    ])
+
+    console.log('IMAGE SAVED')
 
   } catch (error) {
+
     console.error(error)
+
   }
 }
 const [eventImages, setEventImages] = useState([])
@@ -357,42 +360,17 @@ const deleteMenuImage = (indexToDelete) => {
     people: '',
     comment: '',
   })
-
-  setReservationOpen(false)
+setReservationOpen(false)
 
 } catch (error) {
   console.error(error)
   alert('Erreur lors de l’envoi')
 }
 }
-  // =========================
-  // INTRO
-  // =========================
-const addMenuImage = async (file) => {
 
-  const imageUrl = URL.createObjectURL(file)
-
-  try {
-
-    await addDoc(collection(db, 'menuImages'), {
-      image: imageUrl,
-    })
-
-    setMenuImages((prev) => [
-      ...prev,
-      imageUrl,
-    ])
-
-    console.log('IMAGE SAVED FIRESTORE')
-
-  } catch (error) {
-
-    console.error(error)
-
-  }
-}
-}
-
+// =========================
+// INTRO
+// =========================
 
 
 if (!loaded) {
@@ -1069,3 +1047,4 @@ return (
 
 </div>
 )
+}
