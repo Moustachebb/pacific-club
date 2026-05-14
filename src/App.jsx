@@ -56,7 +56,7 @@ export default function App() {
   const [adminAction, setAdminAction] = useState('')
   const [accessDenied, setAccessDenied] = useState(false)
   const [menuImages, setMenuImages] = useState([])
-  const addMenuImage = async () => {
+const addMenuImage = async () => {
 
   const imageUrl = prompt('Lien image')
 
@@ -82,6 +82,7 @@ export default function App() {
   }
 }
 
+const [menuImages, setMenuImages] = useState([])
 const [eventImages, setEventImages] = useState([])
 
   const [newPost, setNewPost] = useState({
@@ -420,7 +421,31 @@ setReservationOpen(false)
   alert('Erreur lors de l’envoi')
 }
 }
+const addMenuImage = async () => {
 
+  const imageUrl = prompt('Lien image')
+
+  if (!imageUrl) return
+
+  try {
+
+    await addDoc(collection(db, 'menuImages'), {
+      image: imageUrl,
+    })
+
+    setMenuImages((prev) => [
+      ...prev,
+      imageUrl,
+    ])
+
+    console.log('IMAGE SAVED')
+
+  } catch (error) {
+
+    console.error(error)
+
+  }
+}
 // =========================
 // INTRO
 // =========================
