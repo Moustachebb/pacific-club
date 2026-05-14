@@ -3,7 +3,13 @@ import fond from './assets/fond.jpg'
 import hero from './assets/hero.png'
 import event1 from './assets/event1.jpg'
 import EventModal from './components/EventModal'
+import {
+  collection,
+  addDoc,
+  getDocs,
+} from 'firebase/firestore'
 
+import { db } from './firebase'
 
 export default function App() {
 
@@ -50,6 +56,28 @@ export default function App() {
   const [adminAction, setAdminAction] = useState('')
   const [accessDenied, setAccessDenied] = useState(false)
   const [menuImages, setMenuImages] = useState([])
+  useEffect(() => {
+  loadMenuImages()
+}, [])
+
+const loadMenuImages = async () => {
+  try {
+    const querySnapshot = await getDocs(
+      collection(db, 'menus')
+    )
+
+    const images = []
+
+    querySnapshot.forEach((doc) => {
+      images.push(doc.data().url)
+    })
+
+    setMenuImages(images)
+
+  } catch (error) {
+    console.error(error)
+  }
+}
 const [eventImages, setEventImages] = useState([])
 
   const [newPost, setNewPost] = useState({
@@ -86,6 +114,34 @@ const [eventImages, setEventImages] = useState([])
   useEffect(() => {
     localStorage.setItem('pacific-posts', JSON.stringify(posts))
   }, [posts])
+  useEffect(() => {
+
+  const loadMenuImages = async () => {
+
+    try {
+
+      const querySnapshot = await getDocs(
+        collection(db, 'menuImages')
+      )
+
+      const images = querySnapshot.docs.map(
+        (doc) => doc.data().image
+      )
+
+      setMenuImages(images)
+
+      console.log('MENU LOADED')
+
+    } catch (error) {
+
+      console.error(error)
+
+    }
+  }
+
+  loadMenuImages()
+
+}, [])
 
   // =========================
   // INTRO CINEMATIC
@@ -312,13 +368,29 @@ const deleteMenuImage = (indexToDelete) => {
   // =========================
   // INTRO
   // =========================
-  const addMenuImage = async (file) => {
+const addMenuImage = async (file) => {
+
   const imageUrl = URL.createObjectURL(file)
 
-  setMenuImages((prev) => [
-    ...prev,
-    imageUrl,
-  ])
+  try {
+
+    await addDoc(collection(db, 'menuImages'), {
+      image: imageUrl,
+    })
+
+    setMenuImages((prev) => [
+      ...prev,
+      imageUrl,
+    ])
+
+    console.log('IMAGE SAVED FIRESTORE')
+
+  } catch (error) {
+
+    console.error(error)
+
+  }
+}
 }
 
 
@@ -441,7 +513,7 @@ return (
       return
     }
 
-    document.getElementById('menuUpload').click()
+    addMenuImage()
   }}
         className="w-full rounded-3xl border border-yellow-500/10 bg-zinc-900/80 px-6 py-6 text-left hover:border-yellow-400 hover:bg-yellow-500/10 transition-all"
       >
@@ -458,17 +530,6 @@ return (
         </p>
       </button>
 
-      <input
-        id="menuUpload"
-        type="file"
-        accept="image/*"
-        hidden
-        onChange={async (e) => {
-          if (e.target.files[0]) {
-            await addMenuImage(e.target.files[0])
-          }
-        }}
-      />
 
       {/* SUPPRIMER MENU */}
       <button
@@ -1008,4 +1069,3 @@ return (
 
 </div>
 )
-}
