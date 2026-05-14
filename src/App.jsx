@@ -536,12 +536,12 @@ return (
     <img
       src="/logo2.png"
       alt="Pacific Club"
-      className="w-[550px] max-w-[85%] object-contain drop-shadow-[0_0_35px_rgba(255,215,0,0.45)]"
+      className="w-[550px] max-w-[65%] object-contain drop-shadow-[0_0_35px_rgba(255,215,0,0.45)]"
     />
 
     <button
       onClick={() => setReservationOpen(true)}
-      className="mt-16 border border-yellow-500/30 px-14 py-5 rounded-full uppercase tracking-[6px] text-yellow-400 hover:bg-yellow-500 hover:text-black transition-all duration-300"
+      className="mt-16 border border-yellow-500/30 px-14 py-5 rounded-full uppercase tracking-[6px] text-white hover:bg-yellow-500 hover:text-black transition-all duration-300"
     >
       Réserver
     </button>
