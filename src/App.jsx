@@ -81,6 +81,7 @@ export default function App() {
 
   }
 }
+
 const [eventImages, setEventImages] = useState([])
 
   const [newPost, setNewPost] = useState({
@@ -120,19 +121,29 @@ const [eventImages, setEventImages] = useState([])
 
   useEffect(() => {
 
+
   const loadPosts = async () => {
 
-    const querySnapshot = await getDocs(
-      collection(db, 'posts')
-    )
+    try {
 
-    const firebasePosts = []
+      const querySnapshot = await getDocs(
+        collection(db, 'posts')
+      )
 
-    querySnapshot.forEach((doc) => {
-      firebasePosts.push(doc.data())
-    })
+      const firebasePosts = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
 
-    setPosts(firebasePosts)
+      setPosts(firebasePosts)
+
+      console.log(firebasePosts)
+
+       } catch (error) {
+
+      console.error(error)
+
+    }
   }
 
   loadPosts()
@@ -186,10 +197,10 @@ useEffect(() => {
   // =========================
  const addPost = async () => {
 
-  if (posts.length >= 6) {
-    alert('Maximum 6 posts')
-    return
-  }
+ if (posts.filter((p) => p.category === 'NEWS').length >= 6) {
+  alert('Maximum 6 posts')
+  return
+}
 
   const { title, description, image, video } = newPost
 
