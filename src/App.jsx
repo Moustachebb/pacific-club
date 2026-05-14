@@ -976,8 +976,23 @@ return (
 
 
   </div>
+  
 ))}
+{selectedMenuImage && (
 
+  <div
+    onClick={() => setSelectedMenuImage(null)}
+    className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-10"
+  >
+
+    <img
+      src={selectedMenuImage}
+      className="max-w-full max-h-full rounded-[30px] shadow-2xl"
+    />
+
+  </div>
+
+)}
     </div>
 
   </div>
