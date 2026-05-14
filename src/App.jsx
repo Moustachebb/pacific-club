@@ -488,7 +488,8 @@ if (!loaded) {
 
       <div className="flex flex-col items-center justify-center">
         <img
-          src="/logo.png"
+          src="/logo2
+          .png"
           alt="Pacific Club"
           className="w-[520px] max-w-[90%] drop-shadow-[0_0_40px_rgba(255,215,0,0.5)] animate-pulse"
         />
@@ -534,7 +535,7 @@ return (
   <div className="relative z-20 flex flex-col items-center justify-center text-center px-6">
 
     <img
-      src="/logo.png"
+      src="/logo2.png"
       alt="Pacific Club"
       className="w-[850px] max-w-[95%] object-contain drop-shadow-[0_0_35px_rgba(255,215,0,0.45)]"
     />
@@ -1140,7 +1141,7 @@ return (
 <footer className="py-16 text-center bg-black border-t border-yellow-700/20">
 
   <img
-    src="/logo.png"
+    src="/logo2.png"
     alt="Pacific Club"
     className="w-[340px] mx-auto object-contain opacity-90"
   />
