@@ -55,32 +55,7 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState('')
   const [adminAction, setAdminAction] = useState('')
   const [accessDenied, setAccessDenied] = useState(false)
-  const [menuImages, setMenuImages] = useState([])
-const addMenuImage = async () => {
-
-  const imageUrl = prompt('Lien image')
-
-  if (!imageUrl) return
-
-  try {
-
-    await addDoc(collection(db, 'menuImages'), {
-      image: imageUrl,
-    })
-
-    setMenuImages((prev) => [
-      ...prev,
-      imageUrl,
-    ])
-
-    console.log('IMAGE SAVED')
-
-  } catch (error) {
-
-    console.error(error)
-
-  }
-}
+ 
 
 const [menuImages, setMenuImages] = useState([])
 const [eventImages, setEventImages] = useState([])
@@ -1112,6 +1087,44 @@ return (
   </div>
 
 </section>
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 w-full mt-16">
+
+  {posts.map((post, index) => (
+
+    <div
+      key={index}
+      className="bg-black/40 border border-yellow-500/10 rounded-[30px] overflow-hidden"
+    >
+
+      {post.image && (
+        <img
+          src={post.image}
+          className="w-full h-[260px] object-cover"
+        />
+      )}
+
+      <div className="p-6">
+
+        <p className="text-yellow-400 uppercase tracking-[4px] text-xs">
+          {post.category}
+        </p>
+
+        <h3 className="text-white text-2xl mt-4">
+          {post.title}
+        </h3>
+
+        <p className="text-white/60 mt-4 leading-relaxed">
+          {post.description}
+        </p>
+
+      </div>
+
+    </div>
+
+  ))}
+
+</div>
+
        {/* FOOTER */}
 <footer className="py-16 text-center bg-black border-t border-yellow-700/20">
 
@@ -1122,7 +1135,7 @@ return (
   />
 
 </footer>
-
 </div>
 )
+
 }
